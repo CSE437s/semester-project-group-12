@@ -1,28 +1,59 @@
 import { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, SafeAreaView, FlatList } from 'react-native';
+import { StyleSheet, Text, View, SafeAreaView, FlatList, TouchableOpacity } from 'react-native';
 import { SearchBar } from 'react-native-elements';
 
 export default function App() {
   const [search, setSearch] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+  const suggestionData = require('./STLNeighborhoods.json').neighborhoods;
 
   const updateSearch = (text) => {
     setSearch(text);
-    
+    if (text != '') {
+      setSuggestions(suggestionData.filter(item =>
+        item.toLowerCase().includes(text.toLowerCase())
+      ));
+    } else {
+      setSuggestions([]);
+    }
+
   };
 
+  const handleItemClick = (item) => {
+    console.log("Clicked item:", item);
+  }
+
+  const renderSuggestion = ({ item }) => (
+    <TouchableOpacity onPress={() => handleItemClick(item)} style={styles.suggestionItem}>
+      <Text>{item}</Text>
+    </TouchableOpacity>
+
+  );
+
   return (
-    <SafeAreaView style={styles.container}>
-      <SearchBar
-        placeholder="Type Here..."
-        onChangeText={updateSearch}
-        containerStyle={{ width: '100%' }}
-        value={search}
-      />
-     
+    <SafeAreaView>
+      <View style={styles.container}>
+        <SearchBar
+          placeholder="Type your neighborhood here..."
+          onChangeText={updateSearch}
+          containerStyle={{ width: '100%' }}
+          value={search}
+        />
+      </View>
+
+
+      <View>
+        <FlatList
+          data={suggestions}
+          renderItem={renderSuggestion}
+          keyExtractor={(item) => item}
+        />
+      </View>
+
       <StatusBar style="auto" />
     </SafeAreaView>
-    
+
   );
 }
 
@@ -33,6 +64,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexDirection: 'row',
   },
- 
-  
+  suggestionItem: {
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  }
+
+
 });
