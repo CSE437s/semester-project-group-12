@@ -2,14 +2,16 @@ import { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, SafeAreaView, FlatList, TouchableOpacity, TextInput, Button } from 'react-native';
 import { SearchBar } from 'react-native-elements';
-import { createUserWithEmailAndPassword, connectAuthEmulator } from "firebase/auth"
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth"
 import { auth } from './firebaseConfig';
 
 export default function App() {
   const [search, setSearch] = useState('');
   const [suggestions, setSuggestions] = useState([]);
-  const [email, onChangeEmail] = useState('');
-  const [password, onChangePassword] = useState('');
+  const [signUpEmail, onChangeSignUpEmail] = useState('');
+  const [signUpPassword, onChangeSignUpPassword] = useState('');
+  const [logInEmail, onChangeLogInEmail] = useState('');
+  const [logInPassword, onChangeLogInPassword] = useState('');
 
   const suggestionData = require('./STLNeighborhoods.json').neighborhoods;
 
@@ -36,15 +38,30 @@ export default function App() {
 
   );
 
-  const signUp = async (email, password) => {
-   console.log("email " + email)
-   console.log("password " + password)
-    console.log("pressed")
-    createUserWithEmailAndPassword(auth, email, password)
+  const signUp = () => {
+  
+    createUserWithEmailAndPassword(auth, signUpEmail, signUpPassword)
       .then((userCredential) => {
         // Signed up 
         const user = userCredential.user;
-        console.log(user)
+        console.log("You're signed up!");
+      })
+      .catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        console.log(errorCode)
+        console.log(errorMessage)
+      });
+
+  }
+
+  const logIn = () => {
+  
+    signInWithEmailAndPassword(auth, logInEmail, logInPassword)
+      .then((userCredential) => {
+        // Logged in 
+        const user = userCredential.user;
+        console.log("You're logged in!");
       })
       .catch((error) => {
         const errorCode = error.code;
@@ -81,17 +98,31 @@ export default function App() {
       </Text>
       <TextInput
         style={styles.input}
-        onChangeText={onChangeEmail}
-        value={email}
+        onChangeText={onChangeSignUpEmail}
+        value={signUpEmail}
       />
       <TextInput
         style={styles.input}
-        onChangeText={onChangePassword}
-        value={password}
+        onChangeText={onChangeSignUpPassword}
+        value={signUpPassword}
       />
       <Button
         title="Sign Up"
         onPress={signUp}
+      />
+      <TextInput
+        style={styles.input}
+        onChangeText={onChangeLogInEmail}
+        value={logInEmail}
+      />
+      <TextInput
+        style={styles.input}
+        onChangeText={onChangeLogInPassword}
+        value={logInPassword}
+      />
+      <Button
+        title="Log in"
+        onPress={logIn}
       />
     </SafeAreaView>
 
