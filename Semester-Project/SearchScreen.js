@@ -1,86 +1,79 @@
-import { React, useState } from 'react';
-import { StyleSheet, View, Text, SafeAreaView, FlatList, TouchableOpacity, Button } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, View, Text, SafeAreaView, FlatList, TouchableOpacity } from 'react-native';
 import { SearchBar } from 'react-native-elements';
 import { StatusBar } from 'expo-status-bar';
 
 const SearchScreen = ({ navigation }) => {
-    const [search, setSearch] = useState('');
-    const [suggestions, setSuggestions] = useState([]);
+  const [search, setSearch] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
 
-    const suggestionData = require('./STLNeighborhoods.json').neighborhoods;
+  const suggestionData = require('./STLNeighborhoods.json').neighborhoods;
 
-    const updateSearch = (text) => {
-        setSearch(text);
-        if (text != '') {
-            setSuggestions(suggestionData.filter(item =>
-                item.toLowerCase().includes(text.toLowerCase())
-            ));
-        } else {
-            setSuggestions([]);
-        }
+  const updateSearch = (text) => {
+    setSearch(text);
+    if (text !== '') {
+      setSuggestions(suggestionData.filter(item =>
+        item.toLowerCase().includes(text.toLowerCase())
+      ));
+    } else {
+      setSuggestions([]);
+    }
+  };
 
-    };
+  const renderSuggestion = ({ item }) => (
+    <TouchableOpacity onPress={() => navigation.navigate('ScoreScreen', { name: item })} style={styles.suggestionItem}>
+      <Text style={styles.itemTitle}>{item}</Text>
+    </TouchableOpacity>
+  );
 
-    // const handleItemClick = (item) => {
-    //     console.log("Clicked item:", item);
-    // }
+  return (
+    <SafeAreaView style={styles.container}>
+      <SearchBar
+        placeholder="Type your neighborhood here..."
+        onChangeText={updateSearch}
+        containerStyle={styles.searchContainer}
+        inputContainerStyle={styles.searchInputContainer}
+        inputStyle={styles.searchInput}
+        value={search}
+      />
 
-    const renderSuggestion = ({ item }) => (
-        <TouchableOpacity onPress={() => navigation.navigate('ScoreScreen', {name: item})} style={styles.suggestionItem}>
-            <Text>{item}</Text>
-        </TouchableOpacity>
+      <FlatList
+        data={suggestions}
+        renderItem={renderSuggestion}
+        keyExtractor={(item) => item}
+      />
 
-    );
-
-
-
-    return (
-        <SafeAreaView>
-            <View style={styles.container}>
-                <SearchBar
-                    placeholder="Type your neighborhood here..."
-                    onChangeText={updateSearch}
-                    containerStyle={{ width: '100%' }}
-                    value={search}
-                />
-            </View>
-
-
-            <View>
-                <FlatList
-                    data={suggestions}
-                    renderItem={renderSuggestion}
-                    keyExtractor={(item) => item}
-                />
-            </View>
-
-            <StatusBar style="auto" />
-           
-        </SafeAreaView>
-    );
-
+      <StatusBar style="auto" />
+    </SafeAreaView>
+  );
 };
 
 export default SearchScreen;
 
 const styles = StyleSheet.create({
-    container: {
-        // flex: 1,
-        backgroundColor: '#fff',
-        justifyContent: 'center',
-        flexDirection: 'row',
-    },
-    suggestionItem: {
-        padding: 15,
-        borderBottomWidth: 1,
-        borderBottomColor: '#ccc',
-    },
-    input: {
-        height: 40,
-        margin: 12,
-        borderWidth: 1,
-        padding: 10,
-    },
-
-
+  container: {
+    flex: 1,
+    backgroundColor: '#8ecae6',
+  },
+  searchContainer: {
+    backgroundColor: 'transparent',
+    borderBottomColor: 'transparent',
+    borderTopColor: 'transparent',
+  },
+  searchInputContainer: {
+    backgroundColor: '#bde0fe',
+    borderRadius: 10,
+  },
+  searchInput: {
+    color: '#FFF',
+  },
+  suggestionItem: {
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#FFF',
+  },
+  itemTitle: {
+    color: '#FFF',
+    fontSize: 18
+  }
 });
