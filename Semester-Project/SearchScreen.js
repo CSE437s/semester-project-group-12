@@ -53,7 +53,7 @@ export default SearchScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#8ecae6',
+    backgroundColor: '#fff',
   },
   searchContainer: {
     backgroundColor: 'transparent',
@@ -61,19 +61,19 @@ const styles = StyleSheet.create({
     borderTopColor: 'transparent',
   },
   searchInputContainer: {
-    backgroundColor: '#bde0fe',
+    backgroundColor: '#edede9',
     borderRadius: 10,
   },
   searchInput: {
-    color: '#FFF',
+    color: '#003049',
   },
   suggestionItem: {
     padding: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#FFF',
+    borderBottomColor: '#003049',
   },
   itemTitle: {
-    color: '#FFF',
+    color: '#003049',
     fontSize: 18
   }
 });

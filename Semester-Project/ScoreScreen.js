@@ -19,7 +19,7 @@ export default ScoreScreen;
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#8ecae6',
+        backgroundColor: '#59f720',
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -29,18 +29,23 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     centeredText: {
-        color: "#fff",
+       
         textAlign: 'center',
         fontWeight: 'bold'
     },
     titleStyle: {
+        color: "#fff",
         fontSize: 30,
     },
     scoreStyle: {
+        color: "#fff",
         fontSize: 35,
 
     },
+    // Green: #59f720, Yellow, #fff321, Red: #d7481d
     borderBox: {
+        
+        backgroundColor: '#59f720',
         borderWidth: 4,
         borderColor: 'white',
         borderRadius: 70,
