@@ -1,12 +1,11 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { Text, SafeAreaView, TextInput, Button, StyleSheet } from 'react-native';
 import { auth } from './firebaseConfig';
 import { useState } from 'react';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth"
-import { Text, View, SafeAreaView, TextInput, Button } from 'react-native';
 
 
-const SignUp = () => {
+const SignUpScreen = () => {
     const [signUpEmail, onChangeSignUpEmail] = useState('');
     const [signUpPassword, onChangeSignUpPassword] = useState('');
     const [logInEmail, onChangeLogInEmail] = useState('');
@@ -81,4 +80,15 @@ const SignUp = () => {
     );
 };
 
-export default SignUp;
+export default SignUpScreen;
+
+const styles = StyleSheet.create({
+  input: {
+    height: 40,
+    margin: 12,
+    borderWidth: 1,
+    padding: 10,
+  },
+
+
+});
