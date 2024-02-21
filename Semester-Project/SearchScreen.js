@@ -26,6 +26,12 @@ const SearchScreen = ({ navigation }) => {
     </TouchableOpacity>
   );
 
+  const renderNeighborhoodTab = ({ item }) => (
+    <TouchableOpacity>
+      
+    </TouchableOpacity>
+  );
+
   return (
     <SafeAreaView style={styles.container}>
       <SearchBar

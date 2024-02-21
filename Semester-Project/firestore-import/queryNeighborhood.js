@@ -4,18 +4,21 @@ import { neighborhoodPopulation, neighborhoodMapping } from './stldata';
 
 // Firebase configuration
 const firebaseConfig = {
-  // Your Firebase config object
+  apiKey: "AIzaSyBKv425wCwtyWhmEXq1kUzQwRfdliulAQc",
+  authDomain: "safecities-773a7.firebaseapp.com",
+  projectId: "safecities-773a7",
+  storageBucket: "safecities-773a7.appspot.com",
+  messagingSenderId: "558662647206",
+  appId: "1:558662647206:web:12abdfe26185fcd2c0e367",
+  measurementId: "G-JXT30DNE87"
 };
 
-// Initialize Firebase
-if (!firebase.apps.length) {
-  firebase.initializeApp(firebaseConfig);
-}
 
-const db = firebase.firestore();
-const nationalAverage = 1620;
 
 async function countDocumentsByNeighborhood(neighborhood) {
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  const nationalAverage = 1620;
   const stlCrimeRef = db.collection('stl_crime');
   const neighborhoodNumber = neighborhoodMapping[neighborhood];
   const neighborhoodPop = neighborhoodPopulation[neighborhood];
@@ -39,3 +42,5 @@ countDocumentsByNeighborhood('Skinker DeBaliviere').then(count => {
 }).catch(error => {
   console.error("Failed to count documents: ", error);
 });
+
+module.exports = countDocumentsByNeighborhood;
