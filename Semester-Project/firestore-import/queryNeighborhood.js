@@ -12,6 +12,7 @@ admin.initializeApp({
 });
 
 const db = admin.firestore();
+const nationalAverage = 1620
 
 /**
  * Count the number of documents in the 'stl_crime' collection where the 'neighborhood' field
@@ -29,7 +30,7 @@ function countDocumentsByNeighborhood(neighborhood) {
     
     return  query.get().then(snapshot => {
       console.log(`Found ${snapshot.size} documents with neighborhood ${neighborhoodNumber}.`);
-      return snapshot.size / neighborhoodPop; 
+      return (Math.floor((snapshot.size * 100000 / neighborhoodPop) / nationalAverage) * 100); 
     }).catch(error => {
       console.error("Error executing query: ", error);
       throw error; 
@@ -37,7 +38,7 @@ function countDocumentsByNeighborhood(neighborhood) {
   }
   
   countDocumentsByNeighborhood('Skinker DeBaliviere').then(count => {
-    console.log(`There are ${count} crimes reported in that neighborhood.`);
+    console.log(`There crime rate is  ${count} for that neighborhood.`);
   }).catch(error => {
     // Handle any errors that occur during the query
     console.error("Failed to count documents: ", error);
