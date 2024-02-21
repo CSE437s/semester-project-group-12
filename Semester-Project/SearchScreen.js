@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, Text, SafeAreaView, FlatList, TouchableOpacity } from 'react-native';
-import { SearchBar } from 'react-native-elements';
+import { SearchBar, Button } from 'react-native-elements';
 import { StatusBar } from 'expo-status-bar';
 
 const SearchScreen = ({ navigation }) => {
@@ -28,7 +28,7 @@ const SearchScreen = ({ navigation }) => {
 
   const renderNeighborhoodTab = ({ item }) => (
     <TouchableOpacity>
-      
+
     </TouchableOpacity>
   );
 

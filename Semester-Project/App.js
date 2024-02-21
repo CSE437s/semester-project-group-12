@@ -5,7 +5,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import SearchScreen from './SearchScreen';
-// import SignUpScreen from './SignUpScreen';
+import SignUpScreen from './SignUpScreen';
 import ScoreScreen from './ScoreScreen';
 
 export default function App() {
@@ -29,6 +29,11 @@ export default function App() {
           name="Search"
           component={SearchScreen}
           options={{ title: 'Search' }}
+        />
+        <Stack.Screen
+          name="SignUpScreen"
+          component={SignUpScreen}
+          options={{ title: 'Sign Up' }}
         />
         <Stack.Screen name="ScoreScreen" component={ScoreScreen} options={{ title: 'Score' }} />
       </Stack.Navigator>

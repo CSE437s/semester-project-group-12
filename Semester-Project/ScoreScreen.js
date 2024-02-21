@@ -1,11 +1,16 @@
 import React from 'react';
 import { StyleSheet, View, Text, SafeAreaView } from 'react-native';
+import countDocumentsByNeighborhood from './GetScore';
+
 
 const ScoreScreen = ({ navigation, route }) => {
-    const query = require('./firestore-import/queryNeighborhood.js');
+    countDocumentsByNeighborhood('Skinker DeBaliviere').then(count => {
+        console.log(`The crime rate is ${count}% for that neighborhood.`);
+      }).catch(error => {
+        console.error("Failed to count documents: ", error);
+      });  
 
-    console.log(query(route.params.name));
-    return (
+      return (
         <SafeAreaView style={styles.container}>
             <View style={styles.innerContainer}>
                 <Text style={[styles.centeredText, styles.titleStyle]}>{}</Text>
