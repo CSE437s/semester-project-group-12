@@ -4,7 +4,7 @@ import { neighborhoodPopulation, neighborhoodMapping } from './stldata';
 
 async function countDocumentsByNeighborhood(neighborhood) {
     const nationalAverage = 1620;
-    const stlCrimeCollection = collection(db, 'stl_crime');
+    const stlCrimeCollection = collection(db, 'stl_crime_counts');
     const neighborhoodNumber = neighborhoodMapping[neighborhood];
     const neighborhoodPop = neighborhoodPopulation[neighborhood];
     console.log(neighborhoodNumber);
