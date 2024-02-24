@@ -7,15 +7,17 @@ async function countDocumentsByNeighborhood(neighborhood) {
     const stlCrimeCollection = collection(db, 'stl_crime_counts');
     const neighborhoodNumber = neighborhoodMapping[neighborhood];
     const neighborhoodPop = neighborhoodPopulation[neighborhood];
-    console.log(neighborhoodNumber);
+
     
     const q = query(stlCrimeCollection, where('neighborhood', '==', String(neighborhoodNumber)));
   
     try {
-      const querySnapshot = await getDocs(q);
-      console.log(`Found ${querySnapshot.size} documents with neighborhood ${neighborhoodNumber}.`);
+        const querySnapshot = await getDocs(q);
+        const documentData = querySnapshot.docs[0].data()
+        console.log(documentData)
+        console.log(`Found ${documentData.count} documents with neighborhood ${neighborhoodNumber}.`);
       
-      return Math.floor((querySnapshot.size * 100000 / neighborhoodPop) / nationalAverage) * 100;
+      return Math.floor((documentData.count * 100000 / neighborhoodPop) / nationalAverage * 100);
     } catch (error) {
       console.error("Error executing query: ", error);
       throw error;

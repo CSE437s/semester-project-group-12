@@ -1,21 +1,29 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, SafeAreaView } from 'react-native';
 import countDocumentsByNeighborhood from './GetScore';
 
-
 const ScoreScreen = ({ navigation, route }) => {
-    countDocumentsByNeighborhood('Skinker DeBaliviere').then(count => {
-        console.log(`The crime rate is ${count}% for that neighborhood.`);
-      }).catch(error => {
-        console.error("Failed to count documents: ", error);
-      });  
+    const [count, setCount] = useState(null); // Initialize count state with null
+    const neighborhood = route.params?.name.replace(' Neighborhood', '');
 
-      return (
+    useEffect(() => {
+        countDocumentsByNeighborhood(neighborhood)
+            .then(fetchedCount => {
+                console.log(`The crime index is ${fetchedCount} for that neighborhood.`);
+                setCount(fetchedCount); // Update the count state with the fetched value
+            })
+            .catch(error => {
+                console.error("Failed to count documents: ", error);
+            });
+    }, [neighborhood]); // Depend on neighborhood to re-fetch if it changes
+
+    return (
         <SafeAreaView style={styles.container}>
             <View style={styles.innerContainer}>
-                <Text style={[styles.centeredText, styles.titleStyle]}>{}</Text>
+                <Text style={[styles.centeredText, styles.titleStyle]}>{neighborhood}</Text>
                 <View style={styles.borderBox}>
-                    <Text style={[styles.centeredText, styles.scoreStyle]}>100</Text>
+                    {/* Dynamically display the count value */}
+                    <Text style={[styles.centeredText, styles.scoreStyle]}>{count !== null ? count : 'Loading...'}</Text>
                 </View>
             </View>
         </SafeAreaView>
@@ -23,6 +31,9 @@ const ScoreScreen = ({ navigation, route }) => {
 }
 
 export default ScoreScreen;
+
+// Add your StyleSheet code here
+
 
 const styles = StyleSheet.create({
     container: {
