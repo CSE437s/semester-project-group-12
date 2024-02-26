@@ -19,7 +19,7 @@ async function uploadNeighborhoodCounts() {
 
     // Count occurrences of each neighborhood
     snapshot.forEach(doc => {
-        const neighborhood = doc.data().neighborhood; // Assuming 'neighborhood' is the field name
+        const neighborhood = doc.data(); 
         if (neighborhood in neighborhoodCounts) {
             neighborhoodCounts[neighborhood]++;
         } else {
