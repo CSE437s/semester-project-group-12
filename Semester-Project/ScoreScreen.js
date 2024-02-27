@@ -97,7 +97,6 @@ export default ScoreScreen;
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#26A65B',
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -122,8 +121,6 @@ const styles = StyleSheet.create({
     },
     // Green: #26A65B, Yellow, #fff321, Red: #d7481d
     borderBox: {
-
-        backgroundColor: '#26A65B',
         borderWidth: 4,
         borderColor: 'white',
         borderRadius: 70,

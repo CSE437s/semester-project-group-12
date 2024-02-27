@@ -22,7 +22,6 @@ async function countDocumentsByNeighborhood(neighborhood) {
       throw error;
     }
   }
-  
-
 // Call the function
 export default countDocumentsByNeighborhood;
+
