@@ -1,11 +1,11 @@
-import React from 'react';
-import { StyleSheet, Text, SafeAreaView, TouchableOpacity, TextInput } from 'react-native';
+import { React, useState } from 'react';
+import { StyleSheet, Text, SafeAreaView, TouchableOpacity, TextInput, View } from 'react-native';
 import { auth } from './firebaseConfig';
-import { useState } from 'react';
 import { createUserWithEmailAndPassword } from "firebase/auth"
+import { Input, Icon } from 'react-native-elements';
 
 
-const SignUpScreen = ({navigation}) => {
+const SignUpScreen = ({ navigation }) => {
   const [signUpEmail, onChangeSignUpEmail] = useState('');
   const [signUpPassword, onChangeSignUpPassword] = useState('');
 
@@ -13,8 +13,6 @@ const SignUpScreen = ({navigation}) => {
 
     createUserWithEmailAndPassword(auth, signUpEmail, signUpPassword)
       .then((userCredential) => {
-        // Signed up 
-        const user = auth.currentUser;
         navigation.reset({
           index: 0,
           routes: [{ name: 'SearchScreen' }],
@@ -31,36 +29,40 @@ const SignUpScreen = ({navigation}) => {
   }
   const navToLogin = () => {
     navigation.navigate('LogInScreen')
-    
+
   }
 
-  
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Sign Up</Text>
 
-      <TextInput
+      <Input
         style={styles.input}
         placeholder="Email"
+        leftIcon={<Icon name="email" type="material" />}
         onChangeText={onChangeSignUpEmail}
         value={signUpEmail}
       />
-      <TextInput
+      <Input
         style={styles.input}
         placeholder="Password"
+        leftIcon={<Icon name="lock" type="material" />}
         onChangeText={onChangeSignUpPassword}
         value={signUpPassword}
-        secureTextEntry
+        secureTextEntry={true}
+
       />
-     <TouchableOpacity style={styles.button} onPress={signUp}>
-        <Text style={styles.buttonText}>Sign Up</Text>
+      <TouchableOpacity style={styles.button} onPress={signUp}>
+        <Text style={styles.buttonText}>Create Account</Text>
       </TouchableOpacity>
 
-       <Text>Already have an account?
-       <TouchableOpacity onPress={navToLogin}>
-        <Text style={{ color: 'blue' }}> Click here </Text>
-        </TouchableOpacity> to log in.</Text>
-
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 5 }}>
+        <Text>Already have an account? Click </Text>
+        <TouchableOpacity onPress={navToLogin}>
+          <Text style={{ color: 'blue' }}>here</Text>
+        </TouchableOpacity>
+        <Text> to log in.</Text>
+      </View>
+      
     </SafeAreaView>
   );
 };
@@ -70,32 +72,26 @@ export default SignUpScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
     padding: 16,
+    marginTop: 25
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 16,
-  },
-  input: {
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
-    marginBottom: 16,
-    paddingHorizontal: 10,
-    width: '90%',
+    marginBottom: 20,
+    marginTop: 20
   },
   button: {
-    backgroundColor: '#3498db', // Example color, you can change it
+    backgroundColor: '#3498db',
     padding: 10,
     borderRadius: 5,
-    width: 350,
+    width: 375,
     alignItems: 'center',
   },
   buttonText: {
-    color: '#fff', // Text color
+    color: '#fff',
     fontSize: 20,
     fontWeight: 'bold',
   },

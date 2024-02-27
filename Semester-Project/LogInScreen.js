@@ -1,8 +1,9 @@
 import React from 'react';
-import { StyleSheet, Text, SafeAreaView, TouchableOpacity, TextInput } from 'react-native';
+import { StyleSheet, Text, SafeAreaView, TouchableOpacity } from 'react-native';
 import { auth } from './firebaseConfig';
 import { useState } from 'react';
 import { signInWithEmailAndPassword } from "firebase/auth"
+import { Input, Icon } from 'react-native-elements';
 
 
 const SignUpScreen = ({navigation}) => {
@@ -13,9 +14,6 @@ const SignUpScreen = ({navigation}) => {
 
     signInWithEmailAndPassword(auth, logInEmail, logInPassword)
       .then((userCredential) => {
-        // Logged in 
-        const user = auth.currentUser;
-        console.log(user)
         navigation.reset({
           index: 0,
           routes: [{ name: 'SearchScreen' }],
@@ -33,21 +31,23 @@ const SignUpScreen = ({navigation}) => {
   return (
     <SafeAreaView style={styles.container}>
 
-      <Text style={styles.title}>Log In</Text>
-
-      <TextInput
+      <Input
         style={styles.input}
         placeholder="Email"
+        leftIcon={<Icon name="email" type="material" />}
         onChangeText={onChangeLogInEmail}
         value={logInEmail}
       />
-      <TextInput
+      <Input
         style={styles.input}
         placeholder="Password"
+        leftIcon={<Icon name="lock" type="material" />}
         onChangeText={onChangeLogInPassword}
         value={logInPassword}
-        secureTextEntry
+        secureTextEntry={true}
+
       />
+    
       <TouchableOpacity style={styles.button} onPress={logIn}>
         <Text style={styles.buttonText}>Log In</Text>
       </TouchableOpacity>
@@ -60,32 +60,26 @@ export default SignUpScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
     padding: 16,
+    marginTop: 25
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 16,
-  },
-  input: {
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
-    marginBottom: 16,
-    paddingHorizontal: 10,
-    width: '90%',
+    marginBottom: 20,
+    marginTop: 20
   },
   button: {
-    backgroundColor: '#3498db', // Example color, you can change it
+    backgroundColor: '#3498db',
     padding: 10,
     borderRadius: 5,
-    width: 350,
+    width: 375,
     alignItems: 'center',
   },
   buttonText: {
-    color: '#fff', // Text color
+    color: '#fff',
     fontSize: 20,
     fontWeight: 'bold',
   },

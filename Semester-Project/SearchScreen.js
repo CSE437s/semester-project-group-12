@@ -22,6 +22,18 @@ const SearchScreen = ({ navigation }) => {
     }
   };
 
+  const logOut = async () => {
+    try {
+      await auth.signOut();
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'SignUpScreen' }],
+      });
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
+  }
+
   const onCancel = () => {
     console.log("cancelled")
   }
@@ -38,17 +50,7 @@ const SearchScreen = ({ navigation }) => {
     </TouchableOpacity>
   );
   
-  const logOut = async () => {
-    try {
-      await auth.signOut();
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'SignUpScreen' }],
-      });
-    } catch (error) {
-      console.error('Error during logout:', error);
-    }
-  }
+  
 
   return (
     <SafeAreaView style={styles.container}>
@@ -70,11 +72,6 @@ const SearchScreen = ({ navigation }) => {
       />
 
       <StatusBar style="auto" />
-      <Button
-        style={styles.button}
-        title="Log Out"
-        onPress={logOut}
-      />
     </SafeAreaView>
   );
 };
