@@ -1,4 +1,4 @@
-import {React, useState, useEffect } from 'react';
+import { React, useState, useEffect } from 'react';
 import { StyleSheet, View, Text, SafeAreaView, TouchableOpacity } from 'react-native';
 import { auth } from './firebaseConfig';
 import countDocumentsByNeighborhood from './GetScore';
@@ -10,7 +10,7 @@ let userid;
 if (user) {
     userid = user.uid;
     console.log('User ID:', userid);
-} 
+}
 
 const ScoreScreen = ({ navigation, route }) => {
     const [count, setCount] = useState(null); // Initialize count state with null
@@ -32,7 +32,7 @@ const ScoreScreen = ({ navigation, route }) => {
 
     const saveData = async () => {
         try {
-            const updatedArray = {...neighborhoods, [neighborhood]: count};
+            const updatedArray = { ...neighborhoods, [neighborhood]: count };
 
             await AsyncStorage.setItem('neighborhoods', JSON.stringify(updatedArray));
             console.log('Data saved successfully!');
@@ -41,6 +41,25 @@ const ScoreScreen = ({ navigation, route }) => {
             console.error('Error saving data:', error);
         }
     };
+
+    const deleteData = async () => {
+        try {
+            const updatedObject = { ...neighborhoods };
+
+            if (neighborhood in updatedObject) {
+                delete updatedObject[neighborhood];
+
+                await AsyncStorage.setItem('neighborhoods', JSON.stringify(updatedObject));
+                console.log('Data deleted successfully!');
+
+                setNeighborhoods(updatedObject);
+            } else {
+                console.log(`Neighborhood ${neighborhood} not found in data.`);
+            }
+        } catch (error) {
+            console.error('Error deleting data:', error);
+        }
+    }
 
     const loadData = async () => {
         try {
@@ -77,9 +96,17 @@ const ScoreScreen = ({ navigation, route }) => {
             <TouchableOpacity style={styles.closeButton} onPress={() => navigation.goBack()}>
                 <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.addButton} onPress={saveData}>
-                <Text style={styles.addText}>Add</Text>
-            </TouchableOpacity>
+            {neighborhood in neighborhoods
+                ?
+                (<TouchableOpacity style={styles.addButton} onPress={deleteData}>
+                    <Text style={styles.addText}>Remove</Text>
+                </TouchableOpacity>)
+                :
+                (<TouchableOpacity style={styles.addButton} onPress={saveData}>
+                    <Text style={styles.addText}>Add</Text>
+                </TouchableOpacity>)
+            }
+
             <View style={styles.innerContainer}>
                 <Text style={[styles.centeredText, styles.titleStyle]}>{neighborhood}</Text>
                 <View style={[styles.borderBox, { backgroundColor: getBackgroundColor() }]}>
