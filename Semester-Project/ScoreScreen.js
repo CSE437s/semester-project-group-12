@@ -1,10 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, SafeAreaView } from 'react-native';
+import {React, useState, useEffect } from 'react';
+import { StyleSheet, View, Text, SafeAreaView, TouchableOpacity } from 'react-native';
+import { auth } from './firebaseConfig';
 import countDocumentsByNeighborhood from './GetScore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const user = auth.currentUser;
+let userid;
+
+if (user) {
+    userid = user.uid;
+    console.log('User ID:', userid);
+} 
 
 const ScoreScreen = ({ navigation, route }) => {
     const [count, setCount] = useState(null); // Initialize count state with null
     const neighborhood = route.params?.name.replace(' Neighborhood', '');
+    const [neighborhoods, setNeighborhoods] = useState({});
+
 
     useEffect(() => {
         countDocumentsByNeighborhood(neighborhood)
@@ -15,10 +27,46 @@ const ScoreScreen = ({ navigation, route }) => {
             .catch(error => {
                 console.error("Failed to count documents: ", error);
             });
+        loadData();
     }, [neighborhood]); // Depend on neighborhood to re-fetch if it changes
+
+    const saveData = async () => {
+        try {
+            const updatedArray = {...neighborhoods, [neighborhood]: count};
+
+            await AsyncStorage.setItem('neighborhoods', JSON.stringify(updatedArray));
+            console.log('Data saved successfully!');
+            loadData();
+        } catch (error) {
+            console.error('Error saving data:', error);
+        }
+    };
+
+    const loadData = async () => {
+        try {
+            const data = await AsyncStorage.getItem('neighborhoods');
+            if (data !== null) {
+                const parsedData = JSON.parse(data);
+                setNeighborhoods(parsedData);
+                console.log('Data loaded successfully:', parsedData);
+            }
+        } catch (error) {
+            console.error('Error loading data:', error);
+        }
+    };
+
+    // const addNeighborhood = () => {
+    //     console.log(userid)
+    // }
 
     return (
         <SafeAreaView style={styles.container}>
+            <TouchableOpacity style={styles.closeButton} onPress={() => navigation.goBack()}>
+                <Text style={styles.cancelText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.addButton} onPress={saveData}>
+                <Text style={styles.addText}>Add</Text>
+            </TouchableOpacity>
             <View style={styles.innerContainer}>
                 <Text style={[styles.centeredText, styles.titleStyle]}>{neighborhood}</Text>
                 <View style={styles.borderBox}>
@@ -31,8 +79,6 @@ const ScoreScreen = ({ navigation, route }) => {
 }
 
 export default ScoreScreen;
-
-// Add your StyleSheet code here
 
 
 const styles = StyleSheet.create({
@@ -48,7 +94,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     centeredText: {
-       
+
         textAlign: 'center',
         fontWeight: 'bold'
     },
@@ -63,7 +109,7 @@ const styles = StyleSheet.create({
     },
     // Green: #26A65B, Yellow, #fff321, Red: #d7481d
     borderBox: {
-        
+
         backgroundColor: '#26A65B',
         borderWidth: 4,
         borderColor: 'white',
@@ -72,5 +118,27 @@ const styles = StyleSheet.create({
         paddingHorizontal: 30,
         marginVertical: 15,
         marginBottom: 350,
+    },
+    closeButton: {
+        position: 'absolute',
+        top: 20,
+        left: 20,
+    },
+    addButton: {
+        position: 'absolute',
+        top: 20,
+        right: 20,
+        borderRadius: 50,
+    },
+    cancelText: {
+        fontSize: 20,
+        color: '#fff',
+
+    },
+    addText: {
+        fontSize: 20,
+        color: '#fff',
+        fontWeight: "bold"
+
     },
 });

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { auth } from './firebaseConfig';
 
 import SearchScreen from './SearchScreen';
@@ -23,6 +24,7 @@ export default function App() {
 
   const AuthenticatedStack = createNativeStackNavigator();
   const UnauthenticatedStack = createNativeStackNavigator();
+  const Tab = createMaterialTopTabNavigator();
 
   if (loading) {
     return (
@@ -59,22 +61,29 @@ export default function App() {
             name="SearchScreen"
             component={SearchScreen}
             options={{
-              title: 'Search',
+              title: 'Neighborhood Search',
               headerRight: () => (
                 <TouchableOpacity
                   style={{ marginRight: 16 }}
                   onPress={logOut}
                 >
-                  <Text style={{ color: 'white' }}>Log Out</Text>
+                  <Text style={{ color: 'white', fontWeight: 'bold'}}>Log Out</Text>
                 </TouchableOpacity>
               ),
             }}
           />
+          <AuthenticatedStack.Group screenOptions={{ presentation: 'modal' }}>
           <AuthenticatedStack.Screen
             name="ScoreScreen"
+            screenOptions={{ presentation: 'modal' }}
             component={ScoreScreen}
-            options={{ title: 'Score' }}
+            options={{ 
+              headerShown: false,
+            }}
           />
+          </AuthenticatedStack.Group>
+          
+          
         </AuthenticatedStack.Navigator>
       ) : (
         <UnauthenticatedStack.Navigator
