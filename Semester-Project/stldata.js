@@ -1,4 +1,4 @@
-var neighborhoodMapping = {
+let neighborhoodMapping = {
     "Carondelet": 1,
     "Patch": 2,
     "Holly Hills": 3,
@@ -80,7 +80,7 @@ var neighborhoodMapping = {
     "North Riverfront": 79
   };
 
- var neighborhoodPopulation = {
+ let neighborhoodPopulation = {
     "Academy": 2355,
     "Baden": 5465,
     "Bellefontaine/Calvary Cemetery": 0,

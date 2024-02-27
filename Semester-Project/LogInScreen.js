@@ -2,24 +2,25 @@ import React from 'react';
 import { StyleSheet, Text, SafeAreaView, TouchableOpacity, TextInput } from 'react-native';
 import { auth } from './firebaseConfig';
 import { useState } from 'react';
-import { createUserWithEmailAndPassword } from "firebase/auth"
+import { signInWithEmailAndPassword } from "firebase/auth"
 
 
 const SignUpScreen = ({navigation}) => {
-  const [signUpEmail, onChangeSignUpEmail] = useState('');
-  const [signUpPassword, onChangeSignUpPassword] = useState('');
+  const [logInEmail, onChangeLogInEmail] = useState('');
+  const [logInPassword, onChangeLogInPassword] = useState('');
 
-  const signUp = () => {
+  const logIn = () => {
 
-    createUserWithEmailAndPassword(auth, signUpEmail, signUpPassword)
+    signInWithEmailAndPassword(auth, logInEmail, logInPassword)
       .then((userCredential) => {
-        // Signed up 
+        // Logged in 
         const user = auth.currentUser;
+        console.log(user)
         navigation.reset({
           index: 0,
           routes: [{ name: 'SearchScreen' }],
         });
-        console.log("You're signed up!");
+        console.log("You're logged in!");
       })
       .catch((error) => {
         const errorCode = error.code;
@@ -29,38 +30,27 @@ const SignUpScreen = ({navigation}) => {
       });
 
   }
-  const navToLogin = () => {
-    navigation.navigate('LogInScreen')
-    
-  }
-
-  
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Sign Up</Text>
+
+      <Text style={styles.title}>Log In</Text>
 
       <TextInput
         style={styles.input}
         placeholder="Email"
-        onChangeText={onChangeSignUpEmail}
-        value={signUpEmail}
+        onChangeText={onChangeLogInEmail}
+        value={logInEmail}
       />
       <TextInput
         style={styles.input}
         placeholder="Password"
-        onChangeText={onChangeSignUpPassword}
-        value={signUpPassword}
+        onChangeText={onChangeLogInPassword}
+        value={logInPassword}
         secureTextEntry
       />
-     <TouchableOpacity style={styles.button} onPress={signUp}>
-        <Text style={styles.buttonText}>Sign Up</Text>
+      <TouchableOpacity style={styles.button} onPress={logIn}>
+        <Text style={styles.buttonText}>Log In</Text>
       </TouchableOpacity>
-
-       <Text>Already have an account?
-       <TouchableOpacity onPress={navToLogin}>
-        <Text style={{ color: 'blue' }}> Click here </Text>
-        </TouchableOpacity> to log in.</Text>
-
     </SafeAreaView>
   );
 };

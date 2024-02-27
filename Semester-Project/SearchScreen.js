@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { StyleSheet, View, Text, SafeAreaView, FlatList, TouchableOpacity } from 'react-native';
 import { SearchBar, Button } from 'react-native-elements';
 import { StatusBar } from 'expo-status-bar';
+import { auth } from './firebaseConfig';
 
 const SearchScreen = ({ navigation }) => {
   const [search, setSearch] = useState('');
   const [suggestions, setSuggestions] = useState([]);
+  const [neighborhoods, setNeighorhoods] = useState([]);
 
   const suggestionData = require('./STLNeighborhoods.json').neighborhoods;
 
@@ -20,6 +22,10 @@ const SearchScreen = ({ navigation }) => {
     }
   };
 
+  const onCancel = () => {
+    console.log("cancelled")
+  }
+  
   const renderSuggestion = ({ item }) => (
     <TouchableOpacity onPress={() => navigation.navigate('ScoreScreen', { name: item })} style={styles.suggestionItem}>
       <Text style={styles.itemTitle}>{item}</Text>
@@ -28,21 +34,35 @@ const SearchScreen = ({ navigation }) => {
 
   const renderNeighborhoodTab = ({ item }) => (
     <TouchableOpacity>
-
+      <Text>{item}</Text>
     </TouchableOpacity>
   );
+  
+  const logOut = async () => {
+    try {
+      await auth.signOut();
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'SignUpScreen' }],
+      });
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
+  }
 
   return (
     <SafeAreaView style={styles.container}>
       <SearchBar
         placeholder="Type your neighborhood here..."
+        clearIcon
         onChangeText={updateSearch}
         containerStyle={styles.searchContainer}
         inputContainerStyle={styles.searchInputContainer}
         inputStyle={styles.searchInput}
         value={search}
+        onClear={onCancel}
       />
-
+      
       <FlatList
         data={suggestions}
         renderItem={renderSuggestion}
@@ -50,6 +70,11 @@ const SearchScreen = ({ navigation }) => {
       />
 
       <StatusBar style="auto" />
+      <Button
+        style={styles.button}
+        title="Log Out"
+        onPress={logOut}
+      />
     </SafeAreaView>
   );
 };
