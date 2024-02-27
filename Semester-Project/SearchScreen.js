@@ -14,11 +14,11 @@ const SearchScreen = ({ navigation }) => {
 
   const suggestionData = require('./STLNeighborhoods.json').neighborhoods;
   const isFocused = useIsFocused();
-
+  
   useEffect(() => {
     if (isFocused) {
       loadData();
-    } 
+    }
   }, [isFocused]);
 
   const updateSearch = (text) => {
@@ -49,35 +49,51 @@ const SearchScreen = ({ navigation }) => {
     console.log("cancelled")
   }
 
-  const onPressed = (item) => {
+  const onPressedSuggestion = (item) => {
     navigation.navigate('ScoreScreen', { name: item })
     updateSearch('')
     Keyboard.dismiss()
 
   }
 
+  const onPressedTab = (item) => {
+    navigation.navigate('ScoreScreen', { name: item.neighborhood })
+  }
+
   const renderSuggestion = ({ item }) => (
-    <TouchableOpacity onPress={() => onPressed(item)} style={styles.suggestionItem}>
+    <TouchableOpacity onPress={() => onPressedSuggestion(item)} style={styles.suggestionItem}>
       <Text style={styles.itemTitle}>{item}</Text>
     </TouchableOpacity>
   );
 
   const renderNeighborhoodTab = ({ item }) => (
-    <TouchableOpacity onPress={() => console.log("pressed")} style={styles.neighborhoodTab}>
+    <TouchableOpacity onPress={() => onPressedTab(item)} style={[styles.neighborhoodTab, { backgroundColor: getBackgroundColor(item.count) }]}>
       <View style={styles.tabContent}>
         <Text style={styles.tabText}>{item.neighborhood}</Text>
         <Text style={styles.tabCount}>{item.count}</Text>
-      </View>   
-      </TouchableOpacity>
-
+      </View>
+    </TouchableOpacity>
   );
 
+  const getBackgroundColor = (count) => {
+    if (count !== null) {
+      if (count > 70) {
+        return '#d7481d'; // Red
+      } else if (count > 40) {
+        return '#fff321'; // Yellow
+      } else {
+        return '#26A65B'; // Green
+      }
+    } else {
+      return '#26A65B'; // Default color when count is null (loading)
+    }
+  };
 
 
   return (
     <SafeAreaView style={styles.container}>
       <SearchBar
-        placeholder="Type your neighborhood here..."
+        placeholder="Search for a STL neighborhood"
         clearIcon
         onChangeText={updateSearch}
         containerStyle={styles.searchContainer}
@@ -94,6 +110,7 @@ const SearchScreen = ({ navigation }) => {
         />
       )}
       <FlatList
+        styles={styles.neighborhoodTabs}
         data={suggestions}
         renderItem={renderSuggestion}
         keyExtractor={(item) => item}
@@ -133,29 +150,33 @@ const styles = StyleSheet.create({
     color: '#003049',
     fontSize: 18
   },
+  neighborhoodTabs: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   neighborhoodTab: {
     padding: 25,
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#26A65B',
-    borderColor: 'black',
-    borderWidth: 1,
-    marginBottom: 5
+    marginBottom: 5,
+    marginLeft: 9,
+    width: '95%',
+    borderRadius: 20,
   },
   tabContent: {
     flexDirection: 'row',
-    alignItems: 'center',
-    
+    justifyContent: 'space-between',
+    width: '100%',
+
   },
   tabText: {
-    color: '#003049',
+    color: '#fff',
     fontSize: 25,
-    marginRight: 10, // Adjust the spacing between name and count
   },
   tabCount: {
-    color: '#003049',
+    color: '#fff',
     fontSize: 25,
     fontWeight: 'bold',
+    marginLeft: 10,
   },
 });

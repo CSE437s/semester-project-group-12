@@ -4,27 +4,52 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { auth } from './firebaseConfig';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import SearchScreen from './SearchScreen';
 import SignUpScreen from './SignUpScreen';
 import LogInScreen from './LogInScreen';
 import ScoreScreen from './ScoreScreen';
 
+// const NeighborhoodDetail = ({ name, rating }) => (
+//   <View style={styles.neighborhoodDetailContainer}>
+//     <Text style={styles.neighborhoodName}>{name}</Text>
+//     <Text style={styles.neighborhoodRating}>{`Rating: ${rating}`}</Text>
+//   </View>
+// );
 export default function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [neighborhoods, setNeighborhoods] = useState({ "test": "test" });
+
+
+  const loadData = async () => {
+    try {
+      const data = await AsyncStorage.getItem('neighborhoods');
+      if (data !== null) {
+        const parsedData = JSON.parse(data);
+        setNeighborhoods(parsedData);
+        print(parsedData)
+      }
+    } catch (error) {
+      console.error('Error loading data:', error);
+    }
+  };
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((authUser) => {
       setUser(authUser);
       setLoading(false);
+      loadData();
     });
     return () => unsubscribe();
+
   }, []);
+
 
   const AuthenticatedStack = createNativeStackNavigator();
   const UnauthenticatedStack = createNativeStackNavigator();
-  const Tab = createMaterialTopTabNavigator();
+  const NeighborhoodTab = createMaterialTopTabNavigator();
 
   if (loading) {
     return (
@@ -63,27 +88,24 @@ export default function App() {
             options={{
               title: 'Neighborhood Search',
               headerRight: () => (
-                <TouchableOpacity
-                  style={{ marginRight: 16 }}
-                  onPress={logOut}
-                >
-                  <Text style={{ color: 'white', fontWeight: 'bold'}}>Log Out</Text>
+                <TouchableOpacity onPress={logOut}>
+                  <Text style={{ color: 'white', fontWeight: 'bold' }}>Log Out</Text>
                 </TouchableOpacity>
               ),
             }}
           />
           <AuthenticatedStack.Group screenOptions={{ presentation: 'modal' }}>
-          <AuthenticatedStack.Screen
-            name="ScoreScreen"
-            screenOptions={{ presentation: 'modal' }}
-            component={ScoreScreen}
-            options={{ 
-              headerShown: false,
-            }}
-          />
+            <AuthenticatedStack.Screen
+              name="ScoreScreen"
+              screenOptions={{ presentation: 'modal' }}
+              component={ScoreScreen}
+              options={{
+                headerShown: false,
+              }}
+            />
           </AuthenticatedStack.Group>
-          
-          
+
+
         </AuthenticatedStack.Navigator>
       ) : (
         <UnauthenticatedStack.Navigator
@@ -109,7 +131,25 @@ export default function App() {
             options={{ title: 'Sign In' }}
           />
         </UnauthenticatedStack.Navigator>
+
       )}
+      {/* {Object.keys(neighborhoods).length > 0 && (
+        <NeighborhoodTab.Navigator
+        screenOptions={{
+          tabBarShowLabel: false, // Hide labels
+          tabBarStyle: { elevation: 0 }, // Remove shadow
+        }}
+        >
+          {Object.entries(neighborhoods).map(([name, rating]) => (
+            <NeighborhoodTab.Screen
+              key={name}
+              name={name}
+            >
+              {() => <NeighborhoodDetail name={name} rating={rating} />}
+            </NeighborhoodTab.Screen>
+          ))}
+        </NeighborhoodTab.Navigator>
+      )} */}
     </NavigationContainer>
   );
 }
