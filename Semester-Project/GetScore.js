@@ -16,7 +16,7 @@ async function countDocumentsByNeighborhood(neighborhood) {
         const documentData = querySnapshot.docs[0].data()
         console.log(documentData)
         console.log(`Found ${documentData.count} documents with neighborhood ${neighborhoodNumber}.`);
-      return Math.floor(documentData.count *1000/neighborhoodPop);
+      return Math.floor((documentData.count * 100000 / neighborhoodPop) / nationalAverage * 10);
     } catch (error) {
       console.error("Error executing query: ", error);
       throw error;
