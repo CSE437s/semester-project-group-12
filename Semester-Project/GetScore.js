@@ -17,7 +17,7 @@ async function countDocumentsByNeighborhood(neighborhood) {
         console.log(documentData)
         console.log(`Found ${documentData.count} documents with neighborhood ${neighborhoodNumber}.`);
       
-      return Math.floor((documentData.count * 100000 / neighborhoodPop) / nationalAverage * 100);
+      return Math.floor((documentData.count * 100000 / neighborhoodPop) / nationalAverage * 1000);
     } catch (error) {
       console.error("Error executing query: ", error);
       throw error;

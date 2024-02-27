@@ -58,9 +58,22 @@ const ScoreScreen = ({ navigation, route }) => {
     // const addNeighborhood = () => {
     //     console.log(userid)
     // }
+    const getBackgroundColor = () => {
+        if (count !== null) {
+            if (count > 70) {
+                return '#d7481d'; // red
+            } else if (count > 40) {
+                return '#fff321'; // Yellow
+            } else {
+                return '#26A65B'; // Red
+            }
+        } else {
+            return '#26A65B'; // Default color when count is null (loading)
+        }
+    };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={[styles.container, { backgroundColor: getBackgroundColor() }]}>
             <TouchableOpacity style={styles.closeButton} onPress={() => navigation.goBack()}>
                 <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
@@ -69,7 +82,7 @@ const ScoreScreen = ({ navigation, route }) => {
             </TouchableOpacity>
             <View style={styles.innerContainer}>
                 <Text style={[styles.centeredText, styles.titleStyle]}>{neighborhood}</Text>
-                <View style={styles.borderBox}>
+                <View style={[styles.borderBox, { backgroundColor: getBackgroundColor() }]}>
                     {/* Dynamically display the count value */}
                     <Text style={[styles.centeredText, styles.scoreStyle]}>{count !== null ? count : 'Loading...'}</Text>
                 </View>
