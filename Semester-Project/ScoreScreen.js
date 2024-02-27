@@ -3,27 +3,20 @@ import { StyleSheet, View, Text, SafeAreaView, TouchableOpacity } from 'react-na
 import { auth } from './firebaseConfig';
 import countDocumentsByNeighborhood from './GetScore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { addNeighborhood, deleteNeighborhood } from './PersonalData';
+
+const user = auth.currentUser;
+let userid;
+
+if (user) {
+    userid = user.uid;
+    console.log('User ID:', userid);
+}
 
 const ScoreScreen = ({ navigation, route }) => {
-    const [count, setCount] = useState(null);
-    const [userid, setUserid] = useState(null);
+    const [count, setCount] = useState(null); // Initialize count state with null
     const neighborhood = route.params?.name.replace(' Neighborhood', '');
     const [neighborhoods, setNeighborhoods] = useState({});
 
-    useEffect(() => {
-        const unsubscribe = auth.onAuthStateChanged(user => {
-            if (user) {
-                setUserid(user.uid);
-                console.log('User ID:', user.uid);
-            } else {
-                setUserid(null);
-                console.log('User is signed out');
-            }
-        });
-
-        return () => unsubscribe(); 
-    }, []);
     useEffect(() => {
         countDocumentsByNeighborhood(neighborhood)
             .then(fetchedCount => {
@@ -41,7 +34,6 @@ const ScoreScreen = ({ navigation, route }) => {
             const updatedArray = { ...neighborhoods, [neighborhood]: count };
 
             await AsyncStorage.setItem('neighborhoods', JSON.stringify(updatedArray));
-            await addNeighborhood(userid, neighborhood, count)
             console.log('Data saved successfully!');
             loadData();
         } catch (error) {
@@ -57,8 +49,8 @@ const ScoreScreen = ({ navigation, route }) => {
                 delete updatedObject[neighborhood];
 
                 await AsyncStorage.setItem('neighborhoods', JSON.stringify(updatedObject));
-                await deleteNeighborhood(userid, neighborhood);
                 console.log('Data deleted successfully!');
+
                 setNeighborhoods(updatedObject);
             } else {
                 console.log(`Neighborhood ${neighborhood} not found in data.`);
@@ -84,18 +76,19 @@ const ScoreScreen = ({ navigation, route }) => {
     const getBackgroundColor = () => {
         if (count !== null) {
             if (count > 70) {
-                return { backgroundColor: '#d7481d', status: 'Dangerous' };
+                return { backgroundColor: '#d7481d', status: 'dangerous' };
             } else if (count > 40) {
-                return { backgroundColor: '#FFBF00', status: 'Fair' };
+                return { backgroundColor: '#fff321', status: 'fair' };
             } else {
-                return { backgroundColor: '#26A65B', status: 'Safe' };
+                return { backgroundColor: '#26A65B', status: 'safe' };
             }
+        } else {
+            return { backgroundColor: '#26A65B', status: 'safe' }; // Default color when count is null (loading)
         }
-    }  
-
+    };
 
     return (
-        <SafeAreaView style={[styles.container, { backgroundColor: getBackgroundColor()?.backgroundColor }]}>
+        <SafeAreaView style={[styles.container, { backgroundColor: getBackgroundColor().backgroundColor }]}>
             <TouchableOpacity style={styles.closeButton} onPress={() => navigation.goBack()}>
                 <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
@@ -109,14 +102,14 @@ const ScoreScreen = ({ navigation, route }) => {
                     <Text style={styles.addText}>Add</Text>
                 </TouchableOpacity>)
             }
-    
+
             <View style={styles.innerContainer}>
                 <Text style={[styles.centeredText, styles.titleStyle]}>{neighborhood}</Text>
-                <View style={[styles.borderBox, { backgroundColor: getBackgroundColor()?.backgroundColor }]}>
+                <View style={[styles.borderBox, { backgroundColor: getBackgroundColor().backgroundColor }]}>
                     {/* Dynamically display the count value */}
                     <Text style={[styles.centeredText, styles.scoreStyle]}>{count !== null ? count : 'Loading...'}</Text>
                 </View>
-                <Text style={styles.statusText}> Danger Level: {getBackgroundColor()?.status}</Text>
+                <Text style={styles.statusText}> Danger level: {getBackgroundColor().status}</Text>
             </View>
         </SafeAreaView>
     );

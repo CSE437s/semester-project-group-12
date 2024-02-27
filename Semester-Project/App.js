@@ -5,7 +5,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { auth } from './firebaseConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getAllNeighborhoods } from './PersonalData';
 
 import SearchScreen from './SearchScreen';
 import SignUpScreen from './SignUpScreen';
@@ -21,36 +20,36 @@ import ScoreScreen from './ScoreScreen';
 export default function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [uidLoaded, setUidLoaded] = useState(false);
+  const [neighborhoods, setNeighborhoods] = useState({ "test": "test" });
 
-  const loadData = async (uid) => {
+
+  const loadData = async () => {
     try {
-      console.log(uid);
-      const neighborhoods = await getAllNeighborhoods(uid);
-      await AsyncStorage.setItem('neighborhoods', JSON.stringify(neighborhoods));
+      const data = await AsyncStorage.getItem('neighborhoods');
+      if (data !== null) {
+        const parsedData = JSON.parse(data);
+        setNeighborhoods(parsedData);
+        print(parsedData)
+      }
     } catch (error) {
       console.error('Error loading data:', error);
     }
   };
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (authUser) => {
+    const unsubscribe = auth.onAuthStateChanged((authUser) => {
       setUser(authUser);
       setLoading(false);
-
-      if (authUser) {
-        await loadData(authUser.uid);
-        setUidLoaded(true);
-      }
+      loadData();
     });
-
     return () => unsubscribe();
+
   }, []);
 
 
   const AuthenticatedStack = createNativeStackNavigator();
   const UnauthenticatedStack = createNativeStackNavigator();
-  // const NeighborhoodTab = createMaterialTopTabNavigator();
+  const NeighborhoodTab = createMaterialTopTabNavigator();
 
   if (loading) {
     return (
@@ -63,7 +62,6 @@ export default function App() {
   const logOut = async () => {
     try {
       await auth.signOut();
-      await AsyncStorage.clear();
     } catch (error) {
       console.error('Error during logout:', error);
     }
@@ -71,7 +69,7 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      {(user && uidLoaded) ? (
+      {user ? (
         <AuthenticatedStack.Navigator
           initialRouteName="SearchScreen"
           screenOptions={{

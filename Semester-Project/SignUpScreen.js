@@ -13,10 +13,10 @@ const SignUpScreen = ({ navigation }) => {
 
     createUserWithEmailAndPassword(auth, signUpEmail, signUpPassword)
       .then((userCredential) => {
-        // navigation.reset({
-        //   index: 0,
-        //   routes: [{ name: 'SearchScreen' }],
-        // });
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'SearchScreen' }],
+        });
         console.log("You're signed up!");
       })
       .catch((error) => {
@@ -55,7 +55,7 @@ const SignUpScreen = ({ navigation }) => {
         <Text style={styles.buttonText}>Create Account</Text>
       </TouchableOpacity>
 
-      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 5 }}>
         <Text>Already have an account? Click </Text>
         <TouchableOpacity onPress={navToLogin}>
           <Text style={{ color: 'blue' }}>here</Text>

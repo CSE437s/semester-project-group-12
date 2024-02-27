@@ -4,32 +4,30 @@ import { auth } from './firebaseConfig';
 import { useState } from 'react';
 import { signInWithEmailAndPassword } from "firebase/auth"
 import { Input, Icon } from 'react-native-elements';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
-const SignUpScreen = ({ navigation }) => {
+const SignUpScreen = ({navigation}) => {
   const [logInEmail, onChangeLogInEmail] = useState('');
   const [logInPassword, onChangeLogInPassword] = useState('');
 
-  const logIn = async () => {
-    try {
-        await signInWithEmailAndPassword(auth, logInEmail, logInPassword);
+  const logIn = () => {
+
+    signInWithEmailAndPassword(auth, logInEmail, logInPassword)
+      .then((userCredential) => {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'SearchScreen' }],
+        });
         console.log("You're logged in!");
-        // try {
-        //     const neighborhoods = await getAllNeighborhoods(userCredential.user.uid);
-        //     await AsyncStorage.setItem('neighborhoods', JSON.stringify(neighborhoods));
-            
-        // } catch (error) {
-        //     console.error('Error saving data:', error);
-        // }
-   
-    } catch (error) {
+      })
+      .catch((error) => {
         const errorCode = error.code;
         const errorMessage = error.message;
-        console.log(errorCode);
-        console.log(errorMessage);
-    }
-};
+        console.log(errorCode)
+        console.log(errorMessage)
+      });
+
+  }
   return (
     <SafeAreaView style={styles.container}>
 
@@ -49,7 +47,7 @@ const SignUpScreen = ({ navigation }) => {
         secureTextEntry={true}
 
       />
-
+    
       <TouchableOpacity style={styles.button} onPress={logIn}>
         <Text style={styles.buttonText}>Log In</Text>
       </TouchableOpacity>
