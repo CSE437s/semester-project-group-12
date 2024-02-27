@@ -109,7 +109,7 @@ const ScoreScreen = ({ navigation, route }) => {
                     {/* Dynamically display the count value */}
                     <Text style={[styles.centeredText, styles.scoreStyle]}>{count !== null ? count : 'Loading...'}</Text>
                 </View>
-                <Text style={styles.statusText}>Status: {getBackgroundColor().status}</Text>
+                <Text style={styles.statusText}> Danger level: {getBackgroundColor().status}</Text>
             </View>
         </SafeAreaView>
     );
