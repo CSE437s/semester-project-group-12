@@ -47,7 +47,7 @@ async function countDocumentsByNeighborhood(neighborhood) {
         const documentData = querySnapshot.docs[0].data()
         console.log(documentData)
         console.log(`Found ${documentData.count} documents with neighborhood ${neighborhoodNumber}.`);
-      return Math.floor(zscoreToPercentile(((documentData.count * 1000 / neighborhoodPop) - 139.40134)/314.7333));
+      return Math.round(zscoreToPercentile(((documentData.count * 1000 / neighborhoodPop) - 139.40134)/314.7333));
     } catch (error) {
       console.error("Error executing query: ", error);
       throw error;
