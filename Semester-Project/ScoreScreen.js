@@ -17,7 +17,6 @@ const ScoreScreen = ({ navigation, route }) => {
     const neighborhood = route.params?.name.replace(' Neighborhood', '');
     const [neighborhoods, setNeighborhoods] = useState({});
 
-
     useEffect(() => {
         countDocumentsByNeighborhood(neighborhood)
             .then(fetchedCount => {
@@ -59,7 +58,7 @@ const ScoreScreen = ({ navigation, route }) => {
         } catch (error) {
             console.error('Error deleting data:', error);
         }
-    }
+    };
 
     const loadData = async () => {
         try {
@@ -74,25 +73,22 @@ const ScoreScreen = ({ navigation, route }) => {
         }
     };
 
-    // const addNeighborhood = () => {
-    //     console.log(userid)
-    // }
     const getBackgroundColor = () => {
         if (count !== null) {
             if (count > 70) {
-                return '#d7481d'; // red
+                return { backgroundColor: '#d7481d', status: 'dangerous' };
             } else if (count > 40) {
-                return '#fff321'; // Yellow
+                return { backgroundColor: '#fff321', status: 'fair' };
             } else {
-                return '#26A65B'; // Red
+                return { backgroundColor: '#26A65B', status: 'safe' };
             }
         } else {
-            return '#26A65B'; // Default color when count is null (loading)
+            return { backgroundColor: '#26A65B', status: 'safe' }; // Default color when count is null (loading)
         }
     };
 
     return (
-        <SafeAreaView style={[styles.container, { backgroundColor: getBackgroundColor() }]}>
+        <SafeAreaView style={[styles.container, { backgroundColor: getBackgroundColor().backgroundColor }]}>
             <TouchableOpacity style={styles.closeButton} onPress={() => navigation.goBack()}>
                 <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
@@ -109,17 +105,17 @@ const ScoreScreen = ({ navigation, route }) => {
 
             <View style={styles.innerContainer}>
                 <Text style={[styles.centeredText, styles.titleStyle]}>{neighborhood}</Text>
-                <View style={[styles.borderBox, { backgroundColor: getBackgroundColor() }]}>
+                <View style={[styles.borderBox, { backgroundColor: getBackgroundColor().backgroundColor }]}>
                     {/* Dynamically display the count value */}
                     <Text style={[styles.centeredText, styles.scoreStyle]}>{count !== null ? count : 'Loading...'}</Text>
                 </View>
+                <Text style={styles.statusText}>Status: {getBackgroundColor().status}</Text>
             </View>
         </SafeAreaView>
     );
-}
+};
 
 export default ScoreScreen;
-
 
 const styles = StyleSheet.create({
     container: {
@@ -133,7 +129,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     centeredText: {
-
         textAlign: 'center',
         fontWeight: 'bold'
     },
@@ -144,9 +139,12 @@ const styles = StyleSheet.create({
     scoreStyle: {
         color: "#fff",
         fontSize: 35,
-
     },
-    // Green: #26A65B, Yellow, #fff321, Red: #d7481d
+    statusText: {
+        color: "#fff",
+        fontSize: 20,
+        marginTop: 10,
+    },
     borderBox: {
         borderWidth: 4,
         borderColor: 'white',
@@ -170,12 +168,10 @@ const styles = StyleSheet.create({
     cancelText: {
         fontSize: 20,
         color: '#fff',
-
     },
     addText: {
         fontSize: 20,
         color: '#fff',
         fontWeight: "bold"
-
     },
 });
