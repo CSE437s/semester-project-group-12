@@ -14,7 +14,11 @@ const SearchScreen = ({ navigation }) => {
 
   const suggestionData = require('./STLNeighborhoods.json').neighborhoods;
   const isFocused = useIsFocused();
-  
+  useEffect(() => {
+    loadData();
+    console.log("shown")
+  }, []);
+
   useEffect(() => {
     if (isFocused) {
       loadData();
@@ -77,18 +81,17 @@ const SearchScreen = ({ navigation }) => {
 
   const getBackgroundColor = (count) => {
     if (count !== null) {
-      if (count > 70) {
-        return '#d7481d'; // Red
-      } else if (count > 40) {
-        return '#fff321'; // Yellow
-      } else {
-        return '#26A65B'; // Green
-      }
+        if (count > 70) {
+            return '#d7481d'; // Red
+        } else if (count > 40) {
+            return '#FFBF00'; // Yellow
+        } else {
+            return '#26A65B'; // Green
+        }
     } else {
-      return '#26A65B'; // Default color when count is null (loading)
+        return '#26A65B'; // Default color when count is null (loading)
     }
-  };
-
+};
 
   return (
     <SafeAreaView style={styles.container}>
