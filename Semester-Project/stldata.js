@@ -135,7 +135,7 @@ let neighborhoodMapping = {
     "Missouri Botanical Garden": 3,
     "Mount Pleasant": 4376,
     "Near North Riverfront": 395,
-    "North Hampton": 7489,
+    "Northampton": 7489,
     "North Pointe": 3396,
     "North Riverfront": 154,
     "O'Fallon": 4342,
