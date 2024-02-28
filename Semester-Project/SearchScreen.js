@@ -107,7 +107,7 @@ const SearchScreen = ({ navigation }) => {
       />
       {suggestions.length === 0 && search === '' && (
         <FlatList
-          data={Object.entries(neighborhoods).map(([neighborhood, count]) => ({ neighborhood, count }))}
+          data={Object.entries(neighborhoods || {}).map(([neighborhood, count]) => ({ neighborhood, count }))}
           renderItem={renderNeighborhoodTab}
           keyExtractor={(item) => item.neighborhood}
         />
