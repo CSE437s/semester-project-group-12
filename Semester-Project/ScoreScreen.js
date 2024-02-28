@@ -51,7 +51,7 @@ const ScoreScreen = ({ navigation, route }) => {
 
     const deleteData = async () => {
         try {
-            const updatedObject = { ...neighborhoods };
+            const updatedObject = { ...neighborhoods } || {};
 
             if (neighborhood in updatedObject) {
                 delete updatedObject[neighborhood];
@@ -99,7 +99,7 @@ const ScoreScreen = ({ navigation, route }) => {
             <TouchableOpacity style={styles.closeButton} onPress={() => navigation.goBack()}>
                 <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
-            {neighborhood in neighborhoods
+            {neighborhood in (neighborhoods || {})
                 ?
                 (<TouchableOpacity style={styles.addButton} onPress={deleteData}>
                     <Text style={styles.addText}>Remove</Text>
