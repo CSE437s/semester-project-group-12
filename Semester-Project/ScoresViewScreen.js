@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { StyleSheet, View, Text, ScrollView, Dimensions, SafeAreaView } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, Dimensions, SafeAreaView, TouchableOpacity } from 'react-native';
 import { PagerDotIndicator } from 'react-native-indicators';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
@@ -44,12 +44,11 @@ const ScoresViewScreen = () => {
   };
 
   const generateScreen = (neighborhood) => {
-    console.log(neighborhood)
     const count = neighborhood ? neighborhood[1] : null;
 
     return () => (
-      <SafeAreaView style={styles.innerContainer}>
-        <Text style={[styles.centeredText, styles.titleStyle]}>{neighborhood.neighborhood}</Text>
+      <SafeAreaView style={[styles.container, { backgroundColor: getBackgroundColor(count)?.backgroundColor }]}>
+        <Text style={[styles.centeredText, styles.titleStyle]}>{neighborhood[0]}</Text>
         <View style={[styles.borderBox, { backgroundColor: getBackgroundColor(count)?.backgroundColor }]}>
           <Text style={[styles.centeredText, styles.scoreStyle]}>{count !== null ? count : 'Loading...'}</Text>
         </View>
@@ -90,13 +89,13 @@ const ScoresViewScreen = () => {
         scrollEventThrottle={16}
       >
         {screens.map((screen, index) => (
-          <View key={index} style={{ width: Dimensions.get('window').width, borderWidth: 1, borderColor: 'red' }}>
-            
-            <Text>{screen.name}</Text>
+          <View key={index} style={{ width: Dimensions.get('window').width, borderWidth: 1, borderColor: "white" }}>
+
             {screen.component()}
           </View>
         ))}
       </ScrollView>
+      
     </SafeAreaView>
   );
 };
