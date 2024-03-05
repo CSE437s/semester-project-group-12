@@ -14,13 +14,11 @@ const SearchScreen = ({ navigation }) => {
 
   const suggestionData = require('./STLNeighborhoods.json').neighborhoods;
   const isFocused = useIsFocused();
-  useEffect(() => {
-    loadData();
-    console.log("shown")
-  }, []);
 
   useEffect(() => {
+    console.log("ran");
     if (isFocused) {
+      console.log("focused");
       loadData();
     }
   }, [isFocused]);
@@ -61,7 +59,7 @@ const SearchScreen = ({ navigation }) => {
   }
 
   const onPressedTab = (item) => {
-    navigation.navigate('ScoreScreen', { name: item.neighborhood })
+    navigation.navigate('ScoresViewScreen', { name: item.neighborhood })
   }
 
   const renderSuggestion = ({ item }) => (

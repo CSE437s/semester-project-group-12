@@ -11,6 +11,7 @@ import SearchScreen from './SearchScreen';
 import SignUpScreen from './SignUpScreen';
 import LogInScreen from './LogInScreen';
 import ScoreScreen from './ScoreScreen';
+import ScoresViewScreen from './ScoresViewScreen';
 
 // const NeighborhoodDetail = ({ name, rating }) => (
 //   <View style={styles.neighborhoodDetailContainer}>
@@ -82,6 +83,7 @@ export default function App() {
             headerTitleStyle: {
               fontWeight: 'bold',
             },
+            
           }}
         >
           <AuthenticatedStack.Screen
@@ -94,6 +96,7 @@ export default function App() {
                   <Text style={{ color: 'white', fontWeight: 'bold' }}>Log Out</Text>
                 </TouchableOpacity>
               ),
+              animation: 'fade',
             }}
           />
           <AuthenticatedStack.Group screenOptions={{ presentation: 'modal' }}>
@@ -106,7 +109,16 @@ export default function App() {
               }}
             />
           </AuthenticatedStack.Group>
-
+          
+          <AuthenticatedStack.Group>
+            <AuthenticatedStack.Screen
+              name="ScoresViewScreen"
+              component={ScoresViewScreen}
+              options={{
+                headerShown: false,
+              }}
+            />
+          </AuthenticatedStack.Group>
 
         </AuthenticatedStack.Navigator>
       ) : (
@@ -135,23 +147,6 @@ export default function App() {
         </UnauthenticatedStack.Navigator>
 
       )}
-      {/* {Object.keys(neighborhoods).length > 0 && (
-        <NeighborhoodTab.Navigator
-        screenOptions={{
-          tabBarShowLabel: false, // Hide labels
-          tabBarStyle: { elevation: 0 }, // Remove shadow
-        }}
-        >
-          {Object.entries(neighborhoods).map(([name, rating]) => (
-            <NeighborhoodTab.Screen
-              key={name}
-              name={name}
-            >
-              {() => <NeighborhoodDetail name={name} rating={rating} />}
-            </NeighborhoodTab.Screen>
-          ))}
-        </NeighborhoodTab.Navigator>
-      )} */}
     </NavigationContainer>
   );
 }

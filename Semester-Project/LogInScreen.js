@@ -15,6 +15,7 @@ const SignUpScreen = ({ navigation }) => {
     try {
         await signInWithEmailAndPassword(auth, logInEmail, logInPassword);
         console.log("You're logged in!");
+        // navigation.navigate("SearchScreen");
         // try {
         //     const neighborhoods = await getAllNeighborhoods(userCredential.user.uid);
         //     await AsyncStorage.setItem('neighborhoods', JSON.stringify(neighborhoods));

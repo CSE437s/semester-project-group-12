@@ -8,15 +8,11 @@ import { Input, Icon } from 'react-native-elements';
 const SignUpScreen = ({ navigation }) => {
   const [signUpEmail, onChangeSignUpEmail] = useState('');
   const [signUpPassword, onChangeSignUpPassword] = useState('');
-
+ 
   const signUp = () => {
 
     createUserWithEmailAndPassword(auth, signUpEmail, signUpPassword)
       .then((userCredential) => {
-        // navigation.reset({
-        //   index: 0,
-        //   routes: [{ name: 'SearchScreen' }],
-        // });
         console.log("You're signed up!");
       })
       .catch((error) => {
