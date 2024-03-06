@@ -18,7 +18,7 @@ const ScoresViewScreen = ({navigation}) => {
   useEffect(() => {
     if (isFocused) {
       loadData();
-      scrollToIndex(3)
+      // scrollToIndex(3)
     }
   }, [isFocused]);
 
