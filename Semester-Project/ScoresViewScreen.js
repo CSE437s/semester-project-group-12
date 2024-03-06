@@ -4,6 +4,8 @@ import { PagerDotIndicator } from 'react-native-indicators';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
+import MapView, { Geojson } from 'react-native-maps';
+import neighborhoodsData from './neighborhoods.json'
 
 const ScoresViewScreen = ({navigation}) => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -62,10 +64,33 @@ const ScoresViewScreen = ({navigation}) => {
   const generateCurrentLocationScreen = () => {
     return () => (
       <SafeAreaView style={styles.container}>
-       <Text>Current Location</Text>
+            <View style={styles.container}>
+                <MapView
+                    style={styles.map}
+                    initialRegion={{
+                        latitude: 38.6270, // Adjust if necessary to center on your GeoJSON data
+                        longitude: -90.1994, // Adjust if necessary to center on your GeoJSON data
+                        latitudeDelta: 0.1, // Adjust zoom level as needed
+                        longitudeDelta: 0.1, // Adjust zoom level as needed
+                    }}
+                >
+                    <Geojson geojson={neighborhoodsData} strokeWidth={2} strokeColor="red" />
+                </MapView>
+            </View>
       </SafeAreaView>
     );
-  };
+    };
+
+    const styles = StyleSheet.create({
+        container: {
+            flex: 1,
+        },
+        map: {
+            width: '100%',
+            height: '100%',
+        },
+    });
+
 
   const currentLocationScreen = {
     component: generateCurrentLocationScreen()
@@ -89,7 +114,9 @@ const ScoresViewScreen = ({navigation}) => {
     if (scrollViewRef.current) {
       scrollViewRef.current.scrollTo({ x: index * Dimensions.get('window').width, animated: true });
     }
-  };
+    };
+
+
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
