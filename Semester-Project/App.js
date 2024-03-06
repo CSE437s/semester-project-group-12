@@ -12,6 +12,8 @@ import SignUpScreen from './SignUpScreen';
 import LogInScreen from './LogInScreen';
 import ScoreScreen from './ScoreScreen';
 import ScoresViewScreen from './ScoresViewScreen';
+import * as Location from 'expo-location';
+
 
 // const NeighborhoodDetail = ({ name, rating }) => (
 //   <View style={styles.neighborhoodDetailContainer}>
@@ -23,6 +25,24 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [uidLoaded, setUidLoaded] = useState(false);
+  const [location, setLocation] = useState(); 
+
+    useEffect(() => {
+        const getPermissions = async () => {
+            let { status } = await Location.requestForegroundPermissionsAsync();
+            if (status !== 'granted') {
+                console.log("Please grant location permissions");
+                return;
+            }
+
+            let currentLocation = await Location.getCurrentPositionAsync({});
+            setLocation(currentLocation);
+            console.log("Location:");
+            console.log(currentLocation.coords.longitude);
+            console.log(currentLocation.coords.latitude);
+        };
+        getPermissions();
+    }, []);
 
   const loadData = async (uid) => {
     try {
