@@ -3,18 +3,20 @@ import { StyleSheet, View, Text, ScrollView, Dimensions, SafeAreaView, Touchable
 import { PagerDotIndicator } from 'react-native-indicators';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
+import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
 
-const ScoresViewScreen = () => {
+const ScoresViewScreen = ({navigation}) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [neighborhoods, setNeighborhoods] = useState([]);
   const scrollViewRef = useRef(null);
   const [numOfScreens, setNumOfScreens] = useState(0);
-
+  const [currentColor, setCurrentColor] = useState("white");
   const isFocused = useIsFocused();
 
   useEffect(() => {
     if (isFocused) {
       loadData();
+      scrollToIndex(3)
     }
   }, [isFocused]);
 
@@ -45,7 +47,6 @@ const ScoresViewScreen = () => {
 
   const generateScreen = (neighborhood) => {
     const count = neighborhood ? neighborhood[1] : null;
-
     return () => (
       <SafeAreaView style={[styles.container, { backgroundColor: getBackgroundColor(count)?.backgroundColor }]}>
         <Text style={[styles.centeredText, styles.titleStyle]}>{neighborhood[0]}</Text>
@@ -57,14 +58,26 @@ const ScoresViewScreen = () => {
     );
   };
 
-  const screens = Array.from({ length: numOfScreens }, (_, index) => {
-    const screenIndex = index + 1;
-    const entriesArray = Object.entries(neighborhoods);
+  // Add your current location screen here
+  const generateCurrentLocationScreen = () => {
+    return () => (
+      <SafeAreaView style={styles.container}>
+       <Text>Current Location</Text>
+      </SafeAreaView>
+    );
+  };
 
+  const currentLocationScreen = {
+    component: generateCurrentLocationScreen()
+  };
+
+  const screens = [currentLocationScreen, ...Array.from({ length: numOfScreens }, (_, index) => {
+    const entriesArray = Object.entries(neighborhoods);
+  
     return {
       component: generateScreen(entriesArray[index]),
     };
-  });
+  })];
 
   const handleScroll = (event) => {
     const offsetX = event.nativeEvent.contentOffset.x;
@@ -79,7 +92,7 @@ const ScoresViewScreen = () => {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
       <ScrollView
         ref={scrollViewRef}
         horizontal
@@ -95,7 +108,21 @@ const ScoresViewScreen = () => {
           </View>
         ))}
       </ScrollView>
-      
+      <TouchableOpacity
+        style={{
+          position: 'absolute',
+          bottom: 16,
+          right: 16,
+          backgroundColor: 'blue',
+          padding: 15,
+          borderRadius: 8,
+        }}
+        onPress={() => {
+          navigation.goBack();        
+        }}
+      >
+      <FontAwesomeIcon name="list" size={24} color="white"  />      
+      </TouchableOpacity>
     </SafeAreaView>
   );
 };

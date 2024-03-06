@@ -4,6 +4,7 @@ import { auth } from './firebaseConfig';
 import countDocumentsByNeighborhood from './GetScore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { addNeighborhood, deleteNeighborhood } from './PersonalData';
+import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
 
 const ScoreScreen = ({ navigation, route }) => {
     const [count, setCount] = useState(null);
@@ -102,11 +103,13 @@ const ScoreScreen = ({ navigation, route }) => {
             {neighborhood in (neighborhoods || {})
                 ?
                 (<TouchableOpacity style={styles.addButton} onPress={deleteData}>
-                    <Text style={styles.addText}>Remove</Text>
+                    <FontAwesomeIcon name="minus" size={25} color="white"  />      
+
+                    
                 </TouchableOpacity>)
                 :
                 (<TouchableOpacity style={styles.addButton} onPress={saveData}>
-                    <Text style={styles.addText}>Add</Text>
+                    <FontAwesomeIcon name="plus" size={25} color="white"  />      
                 </TouchableOpacity>)
             }
     
