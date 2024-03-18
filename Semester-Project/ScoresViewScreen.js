@@ -4,8 +4,11 @@ import { PagerDotIndicator } from 'react-native-indicators';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
-import MapView, { Geojson } from 'react-native-maps';
+import MapView, { Geojson, Marker } from 'react-native-maps'; 
 import neighborhoodsData from './neighborhoods.json'
+import { neighborhoodMapping } from './stldata'; 
+
+
 
 const ScoresViewScreen = ({navigation}) => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -60,25 +63,60 @@ const ScoresViewScreen = ({navigation}) => {
     );
   };
 
+    // Adjusted centroid calculation function for clarity and direct usage
+    function calculateCentroid(polygon) {
+        let x = 0, y = 0, area = 0;
+        for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+            const xi = polygon[i][0], yi = polygon[i][1];
+            const xj = polygon[j][0], yj = polygon[j][1];
+            const f = xi * yj - xj * yi;
+            x += (xi + xj) * f;
+            y += (yi + yj) * f;
+            area += f * 3;
+        }
+        return area ? [x / area, y / area] : [0, 0];
+    }
+
+
   // Add your current location screen here
-  const generateCurrentLocationScreen = () => {
-    return () => (
-      <SafeAreaView style={styles.container}>
-            <View style={styles.container}>
-                <MapView
-                    style={styles.map}
-                    initialRegion={{
-                        latitude: 38.6270, // Adjust if necessary to center on your GeoJSON data
-                        longitude: -90.1994, // Adjust if necessary to center on your GeoJSON data
-                        latitudeDelta: 0.1, // Adjust zoom level as needed
-                        longitudeDelta: 0.1, // Adjust zoom level as needed
-                    }}
-                >
-                    <Geojson geojson={neighborhoodsData} strokeWidth={2} strokeColor="red" />
-                </MapView>
-            </View>
-      </SafeAreaView>
-    );
+    const generateCurrentLocationScreen = () => {
+        const markers = Object.entries(neighborhoodMapping).map(([name, number]) => {
+            const feature = neighborhoodsData.features.find(f => f.properties.NHD_NUM === number);
+            if (!feature) return null;
+
+            // Assuming the first set of coordinates is the outer boundary of the polygon
+            const outerBoundary = feature.geometry.coordinates[0];
+            const centroid = calculateCentroid(outerBoundary);
+
+            return (
+                <Marker
+                    key={number.toString()}
+                    coordinate={{ latitude: centroid[1], longitude: centroid[0] }}
+                    title={name}
+                />
+            );
+        }).filter(marker => marker !== null);
+
+ // Filter out any null values in case a feature wasn't found
+
+        return () => (
+            <SafeAreaView style={styles.container}>
+                <View style={styles.container}>
+                    <MapView
+                        style={styles.map}
+                        initialRegion={{
+                            latitude: 38.6270,
+                            longitude: -90.1994,
+                            latitudeDelta: 0.1,
+                            longitudeDelta: 0.1,
+                        }}
+                    >
+                        <Geojson geojson={neighborhoodsData} strokeWidth={2} strokeColor="red" />
+                        {markers}
+                    </MapView>
+                </View>
+            </SafeAreaView>
+        );
     };
 
     const styles = StyleSheet.create({
