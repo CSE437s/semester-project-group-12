@@ -8,6 +8,7 @@ import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
 
 const ScoreScreen = ({ navigation, route }) => {
     const [count, setCount] = useState(null);
+    const [ratio, setRatio] = useState(null);
     const [userid, setUserid] = useState(null);
     const neighborhood = route.params?.name.replace(' Neighborhood', '');
     const [neighborhoods, setNeighborhoods] = useState({});
@@ -23,7 +24,7 @@ const ScoreScreen = ({ navigation, route }) => {
             }
         });
 
-        return () => unsubscribe(); 
+        return () => unsubscribe();
     }, []);
     useEffect(() => {
         countDocumentsByNeighborhood(neighborhood)
@@ -92,7 +93,7 @@ const ScoreScreen = ({ navigation, route }) => {
                 return { backgroundColor: '#26A65B', status: 'Safe' };
             }
         }
-    }  
+    }
 
 
     return (
@@ -103,24 +104,36 @@ const ScoreScreen = ({ navigation, route }) => {
             {neighborhood in (neighborhoods || {})
                 ?
                 (<TouchableOpacity style={styles.addButton} onPress={deleteData}>
-                    <FontAwesomeIcon name="minus" size={25} color="white"  />      
+                    <FontAwesomeIcon name="minus" size={25} color="white" />
 
-                    
+
                 </TouchableOpacity>)
                 :
                 (<TouchableOpacity style={styles.addButton} onPress={saveData}>
-                    <FontAwesomeIcon name="plus" size={25} color="white"  />      
+                    <FontAwesomeIcon name="plus" size={25} color="white" />
                 </TouchableOpacity>)
             }
-    
+
             <View style={styles.innerContainer}>
                 <Text style={[styles.centeredText, styles.titleStyle]}>{neighborhood}</Text>
                 <View style={[styles.borderBox, { backgroundColor: getBackgroundColor()?.backgroundColor }]}>
                     {/* Dynamically display the count value */}
                     <Text style={[styles.centeredText, styles.scoreStyle]}>{count !== null ? count : 'Loading...'}</Text>
+
+
+                </View>
+                
+                <View style={styles.scoreComparisonContainer}>
+                    {ratio !== null && ratio !== undefined ? (
+                        <>
+                            <FontAwesomeIcon name={ratio > 0 ? "caret-up" : "caret-down"} size={30} color="white" />
+                            <Text style={styles.scoreComparisonText}>{ratio > 0 ? ratio.toFixed(2)+"%" : -ratio.toFixed(2)}</Text>
+                        </>
+                    ) : null}
                 </View>
                 <Text style={styles.statusText}> Danger Level: {getBackgroundColor()?.status}</Text>
             </View>
+
         </SafeAreaView>
     );
 };
@@ -160,7 +173,7 @@ const styles = StyleSheet.create({
         borderColor: 'white',
         borderRadius: 70,
         paddingVertical: 40,
-        paddingHorizontal: 30,
+        paddingHorizontal: 40,
         marginVertical: 15,
         marginBottom: 350,
     },
@@ -183,5 +196,14 @@ const styles = StyleSheet.create({
         fontSize: 20,
         color: '#fff',
         fontWeight: "bold"
+    },
+    scoreComparisonContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    scoreComparisonText: {
+        marginLeft: 5,
+        color: 'white',
+        fontSize: 20,
     },
 });

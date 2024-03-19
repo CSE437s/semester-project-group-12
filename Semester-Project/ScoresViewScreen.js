@@ -1,22 +1,22 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { StyleSheet, View, Text, ScrollView, Dimensions, SafeAreaView, TouchableOpacity } from 'react-native';
-import { PagerDotIndicator } from 'react-native-indicators';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
-import MapView, { Geojson, Marker } from 'react-native-maps'; 
-import neighborhoodsData from './neighborhoods.json'
-import { neighborhoodMapping } from './stldata'; 
+
+import * as Location from 'expo-location';
 
 
-
-const ScoresViewScreen = ({navigation}) => {
+const ScoresViewScreen = ({ navigation }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [neighborhoods, setNeighborhoods] = useState([]);
   const scrollViewRef = useRef(null);
   const [numOfScreens, setNumOfScreens] = useState(0);
   const [currentColor, setCurrentColor] = useState("white");
   const isFocused = useIsFocused();
+  const [long, setLong] = useState(""); 
+  const [lat, setLat] = useState(""); 
+
 
   useEffect(() => {
     if (isFocused) {
@@ -27,6 +27,9 @@ const ScoresViewScreen = ({navigation}) => {
 
   const loadData = async () => {
     try {
+      let currentLocation = await Location.getCurrentPositionAsync({});
+      setLat(currentLocation.coords.latitude);
+      setLong(currentLocation.coords.longitude);
       const data = await AsyncStorage.getItem('neighborhoods');
       if (data !== null) {
         const parsedData = JSON.parse(data);
@@ -63,71 +66,20 @@ const ScoresViewScreen = ({navigation}) => {
     );
   };
 
-    // Adjusted centroid calculation function for clarity and direct usage
-    function calculateCentroid(polygon) {
-        let x = 0, y = 0, area = 0;
-        for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-            const xi = polygon[i][0], yi = polygon[i][1];
-            const xj = polygon[j][0], yj = polygon[j][1];
-            const f = xi * yj - xj * yi;
-            x += (xi + xj) * f;
-            y += (yi + yj) * f;
-            area += f * 3;
-        }
-        return area ? [x / area, y / area] : [0, 0];
-    }
-
-
   // Add your current location screen here
-    const generateCurrentLocationScreen = () => {
-        const markers = Object.entries(neighborhoodMapping).map(([name, number]) => {
-            const feature = neighborhoodsData.features.find(f => f.properties.NHD_NUM === number);
-            if (!feature) return null;
+  const generateCurrentLocationScreen = () => {
+    
 
-            // Assuming the first set of coordinates is the outer boundary of the polygon
-            const outerBoundary = feature.geometry.coordinates[0];
-            const centroid = calculateCentroid(outerBoundary);
 
-            return (
-                <Marker
-                    key={number.toString()}
-                    coordinate={{ latitude: centroid[1], longitude: centroid[0] }}
-                    title={name}
-                />
-            );
-        }).filter(marker => marker !== null);
+    return () => (
+      <SafeAreaView style={styles.container}>
+        <Text>{long}</Text>
+        <Text>{lat}</Text>
+      </SafeAreaView>
+    );
 
- // Filter out any null values in case a feature wasn't found
 
-        return () => (
-            <SafeAreaView style={styles.container}>
-                <View style={styles.container}>
-                    <MapView
-                        style={styles.map}
-                        initialRegion={{
-                            latitude: 38.6270,
-                            longitude: -90.1994,
-                            latitudeDelta: 0.1,
-                            longitudeDelta: 0.1,
-                        }}
-                    >
-                        <Geojson geojson={neighborhoodsData} strokeWidth={2} strokeColor="red" />
-                        {markers}
-                    </MapView>
-                </View>
-            </SafeAreaView>
-        );
-    };
-
-    const styles = StyleSheet.create({
-        container: {
-            flex: 1,
-        },
-        map: {
-            width: '100%',
-            height: '100%',
-        },
-    });
+  };
 
 
   const currentLocationScreen = {
@@ -136,7 +88,7 @@ const ScoresViewScreen = ({navigation}) => {
 
   const screens = [currentLocationScreen, ...Array.from({ length: numOfScreens }, (_, index) => {
     const entriesArray = Object.entries(neighborhoods);
-  
+
     return {
       component: generateScreen(entriesArray[index]),
     };
@@ -147,14 +99,6 @@ const ScoresViewScreen = ({navigation}) => {
     const index = Math.round(offsetX / Dimensions.get('window').width);
     setCurrentIndex(index);
   };
-
-  const scrollToIndex = (index) => {
-    if (scrollViewRef.current) {
-      scrollViewRef.current.scrollTo({ x: index * Dimensions.get('window').width, animated: true });
-    }
-    };
-
-
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
@@ -173,21 +117,26 @@ const ScoresViewScreen = ({navigation}) => {
           </View>
         ))}
       </ScrollView>
-      <TouchableOpacity
-        style={{
-          position: 'absolute',
-          bottom: 16,
-          right: 16,
-          backgroundColor: 'blue',
-          padding: 15,
-          borderRadius: 8,
-        }}
-        onPress={() => {
-          navigation.goBack();        
-        }}
-      >
-      <FontAwesomeIcon name="list" size={24} color="white"  />      
-      </TouchableOpacity>
+
+      <View style={styles.bottomBar}>
+        <TouchableOpacity
+          style={styles.bottomBarButton}
+          onPress={() => {
+            navigation.navigate('MapScreen');
+          }}
+        >
+          <FontAwesomeIcon name="map" size={24} color="white" />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.bottomBarButton}
+          onPress={() => {
+            navigation.goBack();
+          }}
+        >
+          <FontAwesomeIcon name="list" size={24} color="white" />
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 };
@@ -226,7 +175,7 @@ const styles = StyleSheet.create({
     borderColor: 'white',
     borderRadius: 70,
     paddingVertical: 40,
-    paddingHorizontal: 30,
+    paddingHorizontal: 40,
     marginVertical: 15,
     marginBottom: 350,
   },
@@ -250,4 +199,25 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: "bold"
   },
+  map: {
+    width: '100%',
+    height: '100%',
+  },
+  bottomBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#0d3b66',
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  bottomBarButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 0,
+    marginBottom: 15
+  },
+
 });

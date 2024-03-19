@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { auth } from './firebaseConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getAllNeighborhoods } from './PersonalData';
@@ -12,15 +11,10 @@ import SignUpScreen from './SignUpScreen';
 import LogInScreen from './LogInScreen';
 import ScoreScreen from './ScoreScreen';
 import ScoresViewScreen from './ScoresViewScreen';
+import MapScreen from './MapScreen';
+
 import * as Location from 'expo-location';
 
-
-// const NeighborhoodDetail = ({ name, rating }) => (
-//   <View style={styles.neighborhoodDetailContainer}>
-//     <Text style={styles.neighborhoodName}>{name}</Text>
-//     <Text style={styles.neighborhoodRating}>{`Rating: ${rating}`}</Text>
-//   </View>
-// );
 export default function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -71,7 +65,6 @@ export default function App() {
 
   const AuthenticatedStack = createNativeStackNavigator();
   const UnauthenticatedStack = createNativeStackNavigator();
-  // const NeighborhoodTab = createMaterialTopTabNavigator();
 
   if (loading) {
     return (
@@ -136,6 +129,18 @@ export default function App() {
               component={ScoresViewScreen}
               options={{
                 headerShown: false,
+                title: 'Scores',
+              }}
+            />
+          </AuthenticatedStack.Group>
+
+          <AuthenticatedStack.Group>
+            <AuthenticatedStack.Screen
+              name="MapScreen"
+              component={MapScreen}
+              options={{
+                title: '',
+
               }}
             />
           </AuthenticatedStack.Group>

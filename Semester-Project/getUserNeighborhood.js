@@ -1,5 +1,5 @@
 const geolib = require('geolib');
-const neighborhoodsData = require('./Neighborhoods.json');
+const neighborhoodsData = require('./neighborhoods.json');
 
 // Function to determine the neighborhood
 function findNeighborhood(longitude, latitude, neighborhoodsData) {

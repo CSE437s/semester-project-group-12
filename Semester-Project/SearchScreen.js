@@ -2,7 +2,6 @@ import { React, useState, useEffect } from 'react';
 import { StyleSheet, Text, SafeAreaView, FlatList, TouchableOpacity, Keyboard, View } from 'react-native';
 import { SearchBar } from 'react-native-elements';
 import { StatusBar } from 'expo-status-bar';
-import { auth } from './firebaseConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
 
@@ -37,6 +36,7 @@ const SearchScreen = ({ navigation }) => {
   const loadData = async () => {
     try {
       const data = await AsyncStorage.getItem('neighborhoods');
+      console.log(data);
       if (data !== null) {
         const parsedData = JSON.parse(data);
         setNeighborhoods(parsedData);
@@ -69,6 +69,7 @@ const SearchScreen = ({ navigation }) => {
   );
 
   const renderNeighborhoodTab = ({ item }) => (
+    
     <TouchableOpacity onPress={() => onPressedTab(item)} style={[styles.neighborhoodTab, { backgroundColor: getBackgroundColor(item.count) }]}>
       <View style={styles.tabContent}>
         <Text style={styles.tabText}>{item.neighborhood}</Text>
