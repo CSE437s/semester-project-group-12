@@ -23,14 +23,14 @@ const ScoreScreen = ({ navigation, route }) => {
                 console.log('User is signed out');
             }
         });
-
         return () => unsubscribe();
     }, []);
     useEffect(() => {
         countDocumentsByNeighborhood(neighborhood)
-            .then(fetchedCount => {
+            .then(([fetchedCount, fetchedRatio]) => {
                 console.log(`The crime index is ${fetchedCount} for that neighborhood.`);
                 setCount(fetchedCount); // Update the count state with the fetched value
+                setRatio(fetchedRatio);
             })
             .catch(error => {
                 console.error("Failed to count documents: ", error);
@@ -40,10 +40,10 @@ const ScoreScreen = ({ navigation, route }) => {
 
     const saveData = async () => {
         try {
-            const updatedArray = { ...neighborhoods, [neighborhood]: count };
-
+            const updatedArray = { ...neighborhoods, [neighborhood]: {count, ratio} };
+            console.log(updatedArray);
             await AsyncStorage.setItem('neighborhoods', JSON.stringify(updatedArray));
-            await addNeighborhood(userid, neighborhood, count)
+            await addNeighborhood(userid, neighborhood, count, ratio)
             console.log('Data saved successfully!');
             loadData();
         } catch (error) {
@@ -126,11 +126,13 @@ const ScoreScreen = ({ navigation, route }) => {
                 <View style={styles.scoreComparisonContainer}>
                     {ratio !== null && ratio !== undefined ? (
                         <>
-                            <FontAwesomeIcon name={ratio > 0 ? "caret-up" : "caret-down"} size={30} color="white" />
-                            <Text style={styles.scoreComparisonText}>{ratio > 0 ? ratio.toFixed(2)+"%" : -ratio.toFixed(2)}</Text>
+                            {/* <FontAwesomeIcon name={ratio > 0 ? "caret-up" : "caret-down"} size={30} color="white" /> */}
+                            <Text style={styles.scoreComparisonText}>{ratio > 0 ? ratio.toFixed(2)+"% more safe \n compared to the \n national average" : -ratio.toFixed(2)+"% more dangerous \n compared to the \n national average"}</Text>
                         </>
                     ) : null}
                 </View>
+
+                
                 <Text style={styles.statusText}> Danger Level: {getBackgroundColor()?.status}</Text>
             </View>
 
@@ -158,10 +160,12 @@ const styles = StyleSheet.create({
     titleStyle: {
         color: "#fff",
         fontSize: 30,
+        marginBottom: 25,
+        marginTop: 70
     },
     scoreStyle: {
         color: "#fff",
-        fontSize: 35,
+        fontSize: 50,
     },
     statusText: {
         color: "#fff",
@@ -171,11 +175,12 @@ const styles = StyleSheet.create({
     borderBox: {
         borderWidth: 4,
         borderColor: 'white',
-        borderRadius: 70,
-        paddingVertical: 40,
-        paddingHorizontal: 40,
+        borderRadius: 80,
+        paddingVertical: 45,
+        paddingHorizontal: 45,
         marginVertical: 15,
-        marginBottom: 350,
+        marginBottom: 15,
+        marginTop: 10,
     },
     closeButton: {
         position: 'absolute',
@@ -200,10 +205,14 @@ const styles = StyleSheet.create({
     scoreComparisonContainer: {
         flexDirection: 'row',
         alignItems: 'center',
+        marginBottom: 250,
+        marginTop: 10,
+
     },
     scoreComparisonText: {
         marginLeft: 5,
         color: 'white',
         fontSize: 20,
+        textAlign: 'center',
     },
 });

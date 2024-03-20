@@ -60,7 +60,7 @@ async function countDocumentsByNeighborhood(neighborhood) {
     }
     console.log("Ratio: " + ratio);
 
-    return score;
+    return [score, ratio];
 
   } catch (error) {
     console.error("Error executing query: ", error);

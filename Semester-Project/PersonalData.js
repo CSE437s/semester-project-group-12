@@ -1,7 +1,7 @@
 import { collection, doc, getDocs, query, setDoc, updateDoc, where, getDoc } from 'firebase/firestore';
 import { db } from "./firebaseConfig";
 
-async function addNeighborhood(userid, neighborhood, count) {
+async function addNeighborhood(userid, neighborhood, count, ratio) {
     const usersNeighborhoods = collection(db, 'users_neighborhoods');
     const userDocRef = doc(usersNeighborhoods, userid);
 
@@ -16,15 +16,16 @@ async function addNeighborhood(userid, neighborhood, count) {
 
             if (existingNeighborhoodIndex !== -1) {
                 existingNeighborhoods[existingNeighborhoodIndex].count = count;
+                existingNeighborhoods[existingNeighborhoodIndex].ratio = ratio;
             } else {
                 // Neighborhood doesn't exist, add it to the array
-                existingNeighborhoods.push({ neighborhood, count });
+                existingNeighborhoods.push({ neighborhood, count, ratio });
             }
 
             await updateDoc(userDocRef, { neighborhoods: existingNeighborhoods });
         } else {
             // User document doesn't exist, create a new one
-            await setDoc(userDocRef, { neighborhoods: [{ neighborhood, count }] });
+            await setDoc(userDocRef, { neighborhoods: [{ neighborhood, count, ratio }] });
         }
 
         console.log('Neighborhood added/updated successfully.');
@@ -78,7 +79,7 @@ async function getAllNeighborhoods(userid) {
 
             // Transform the array into a map {Neighborhood_name: count}
             const neighborhoodsMap = existingNeighborhoods.reduce((map, item) => {
-                map[item.neighborhood] = item.count;
+                map[item.neighborhood] = { count: item.count, ratio: item.ratio };
                 return map;
             }, {});
 

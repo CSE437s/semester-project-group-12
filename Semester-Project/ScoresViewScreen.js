@@ -14,8 +14,8 @@ const ScoresViewScreen = ({ navigation }) => {
   const [numOfScreens, setNumOfScreens] = useState(0);
   const [currentColor, setCurrentColor] = useState("white");
   const isFocused = useIsFocused();
-  const [long, setLong] = useState(""); 
-  const [lat, setLat] = useState(""); 
+  const [long, setLong] = useState("");
+  const [lat, setLat] = useState("");
 
 
   useEffect(() => {
@@ -27,14 +27,14 @@ const ScoresViewScreen = ({ navigation }) => {
 
   const loadData = async () => {
     try {
-      let currentLocation = await Location.getCurrentPositionAsync({});
-      setLat(currentLocation.coords.latitude);
-      setLong(currentLocation.coords.longitude);
+      // let currentLocation = await Location.getCurrentPositionAsync({});
+      // setLat(currentLocation.coords.latitude);
+      // setLong(currentLocation.coords.longitude);
       const data = await AsyncStorage.getItem('neighborhoods');
       if (data !== null) {
         const parsedData = JSON.parse(data);
         setNeighborhoods(parsedData);
-        setNumOfScreens(Object.keys(parsedData).length);
+        setNumOfScreens(Object.keys(parsedData).length)
       }
     } catch (error) {
       console.error('Error loading data:', error);
@@ -53,13 +53,23 @@ const ScoresViewScreen = ({ navigation }) => {
     }
   };
 
-  const generateScreen = (neighborhood) => {
-    const count = neighborhood ? neighborhood[1] : null;
+  const generateScreen = (neighborhood, data) => {
+    const count = data.count;
+    const ratio = data.ratio;
+
     return () => (
       <SafeAreaView style={[styles.container, { backgroundColor: getBackgroundColor(count)?.backgroundColor }]}>
-        <Text style={[styles.centeredText, styles.titleStyle]}>{neighborhood[0]}</Text>
+        <Text style={[styles.centeredText, styles.titleStyle]}>{neighborhood}</Text>
         <View style={[styles.borderBox, { backgroundColor: getBackgroundColor(count)?.backgroundColor }]}>
           <Text style={[styles.centeredText, styles.scoreStyle]}>{count !== null ? count : 'Loading...'}</Text>
+        </View>
+        <View style={styles.scoreComparisonContainer}>
+          {ratio !== null && ratio !== undefined ? (
+            <>
+              {/* <FontAwesomeIcon name={ratio > 0 ? "caret-up" : "caret-down"} size={30} color="white" /> */}
+              <Text style={styles.scoreComparisonText}>{ratio > 0 ? ratio.toFixed(2) + "% more safe \n compared to the \n national average" : -ratio.toFixed(2) + "% more dangerous \n compared to the \n national average"}</Text>
+            </>
+          ) : null}
         </View>
         <Text style={styles.statusText}> Danger Level: {getBackgroundColor(count)?.status}</Text>
       </SafeAreaView>
@@ -68,7 +78,7 @@ const ScoresViewScreen = ({ navigation }) => {
 
   // Add your current location screen here
   const generateCurrentLocationScreen = () => {
-    
+
 
 
     return () => (
@@ -86,13 +96,14 @@ const ScoresViewScreen = ({ navigation }) => {
     component: generateCurrentLocationScreen()
   };
 
-  const screens = [currentLocationScreen, ...Array.from({ length: numOfScreens }, (_, index) => {
-    const entriesArray = Object.entries(neighborhoods);
 
+  const screens = Array.from({ length: numOfScreens }, (_, index) => {
+    const entriesArray = Object.entries(neighborhoods);
+    const [neighborhood, data] = entriesArray[index];
     return {
-      component: generateScreen(entriesArray[index]),
+      component: generateScreen(neighborhood, data),
     };
-  })];
+  });
 
   const handleScroll = (event) => {
     const offsetX = event.nativeEvent.contentOffset.x;
@@ -160,10 +171,11 @@ const styles = StyleSheet.create({
   titleStyle: {
     color: "#fff",
     fontSize: 30,
+    marginBottom: 25,
   },
   scoreStyle: {
     color: "#fff",
-    fontSize: 35,
+    fontSize: 50,
   },
   statusText: {
     color: "#fff",
@@ -173,11 +185,12 @@ const styles = StyleSheet.create({
   borderBox: {
     borderWidth: 4,
     borderColor: 'white',
-    borderRadius: 70,
-    paddingVertical: 40,
-    paddingHorizontal: 40,
+    borderRadius: 80,
+    paddingVertical: 45,
+    paddingHorizontal: 45,
     marginVertical: 15,
-    marginBottom: 350,
+    marginBottom: 15,
+    marginTop: 10,
   },
   closeButton: {
     position: 'absolute',
@@ -219,5 +232,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
     marginBottom: 15
   },
+  scoreComparisonContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 250,
+    marginTop: 10,
 
+  },
+  scoreComparisonText: {
+    marginLeft: 5,
+    color: 'white',
+    fontSize: 20,
+    textAlign: 'center',
+  },
 });
