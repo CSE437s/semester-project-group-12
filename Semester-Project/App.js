@@ -21,6 +21,7 @@ export default function App() {
   const [uidLoaded, setUidLoaded] = useState(false);
   const [location, setLocation] = useState(); 
 
+  /*
     useEffect(() => {
         const getPermissions = async () => {
             let { status } = await Location.requestForegroundPermissionsAsync();
@@ -37,6 +38,7 @@ export default function App() {
         };
         getPermissions();
     }, []);
+    */
 
   const loadData = async (uid) => {
     try {
