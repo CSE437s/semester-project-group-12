@@ -46,6 +46,7 @@ const ScoreScreen = ({ navigation, route }) => {
             await addNeighborhood(userid, neighborhood, count, ratio)
             console.log('Data saved successfully!');
             loadData();
+            navigation.goBack()
         } catch (error) {
             console.error('Error saving data:', error);
         }
@@ -62,6 +63,8 @@ const ScoreScreen = ({ navigation, route }) => {
                 await deleteNeighborhood(userid, neighborhood);
                 console.log('Data deleted successfully!');
                 setNeighborhoods(updatedObject);
+                navigation.goBack()
+
             } else {
                 console.log(`Neighborhood ${neighborhood} not found in data.`);
             }

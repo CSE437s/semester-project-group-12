@@ -1,18 +1,30 @@
-import { React, useState, useEffect } from 'react';
-import { StyleSheet, Text, SafeAreaView, FlatList, TouchableOpacity, Keyboard, View } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, SafeAreaView, FlatList, TouchableOpacity, Keyboard, View, Alert } from 'react-native';
 import { SearchBar } from 'react-native-elements';
 import { StatusBar } from 'expo-status-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
-
+import { deleteNeighborhood } from './PersonalData';
+import { auth } from './firebaseConfig';
 
 const SearchScreen = ({ navigation }) => {
   const [search, setSearch] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [neighborhoods, setNeighborhoods] = useState({});
+  const [userid, setUserid] = useState(null);
 
   const suggestionData = require('./STLNeighborhoods.json').neighborhoods;
   const isFocused = useIsFocused();
+
+  useEffect(() => {
+    // Fetch the current user when the component mounts
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+      setUserid(currentUser.uid);
+    } else {
+      setUserid(null);
+    }
+}, []);
 
   useEffect(() => {
     if (isFocused) {
@@ -46,9 +58,37 @@ const SearchScreen = ({ navigation }) => {
     }
   };
 
-  const onCancel = () => {
-    console.log("cancelled")
-  }
+  const deleteNeigh = (neighborhoodName) => {
+    // Confirm deletion
+    
+    Alert.alert(
+      'Confirm Deletion',
+      `Are you sure you want to delete ${neighborhoodName}?`,
+      [
+        {
+          text: 'Cancel',
+          onPress: () => console.log('Deletion canceled'),
+          style: 'cancel'
+        },
+        {
+          text: 'Delete',
+          onPress: async () => {
+            // Perform deletion
+            const updatedNeighborhoods = { ...neighborhoods };
+            delete updatedNeighborhoods[neighborhoodName];
+            setNeighborhoods(updatedNeighborhoods);
+            await deleteNeighborhood(userid, neighborhoodName);
+
+            // Save updated data to AsyncStorage or any other storage mechanism you're using
+            AsyncStorage.setItem('neighborhoods', JSON.stringify(updatedNeighborhoods))
+              .then(() => console.log(`${neighborhoodName} deleted successfully`))
+              .catch(error => console.error('Error deleting neighborhood:', error));
+          },
+          style: 'destructive'
+        }
+      ]
+    );
+  };
 
   const onPressedSuggestion = (item) => {
     navigation.navigate('ScoreScreen', { name: item })
@@ -68,12 +108,11 @@ const SearchScreen = ({ navigation }) => {
   );
 
   const renderNeighborhoodTab = ({ item, index }) => (
-
     <TouchableOpacity
       onPress={() => onPressedTab(item, index)}
+      onLongPress={() => deleteNeigh(item.neighborhood)} // Long press to delete
       style={[styles.neighborhoodTab, { backgroundColor: getBackgroundColor(item.count) }]}
     >
-
       <View style={styles.tabContent}>
         <Text style={styles.tabText}>{item.neighborhood}</Text>
         <Text style={styles.tabCount}>{item.count}</Text>
@@ -105,17 +144,15 @@ const SearchScreen = ({ navigation }) => {
         inputContainerStyle={styles.searchInputContainer}
         inputStyle={styles.searchInput}
         value={search}
-        onClear={onCancel}
       />
       {suggestions.length === 0 && search === '' && (
         <FlatList
-          data={Object.entries(neighborhoods || {}).map(([neighborhood, { count }]) => ({ neighborhood, count }))}
+          data={Object.entries(neighborhoods).map(([neighborhood, { count }]) => ({ neighborhood, count }))}
           renderItem={renderNeighborhoodTab}
           keyExtractor={(item) => item.neighborhood}
         />
       )}
       <FlatList
-        styles={styles.neighborhoodTabs}
         data={suggestions}
         renderItem={renderSuggestion}
         keyExtractor={(item) => item}

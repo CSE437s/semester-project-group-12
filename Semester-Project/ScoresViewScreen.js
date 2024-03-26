@@ -1,14 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { StyleSheet, View, Text, ScrollView, Dimensions, SafeAreaView, TouchableOpacity, FlatList } from 'react-native';
+import { StyleSheet, View, Text, Dimensions, SafeAreaView, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
 import neighborhoodsData from './neighborhoods.json';
 import { neighborhoodMapping } from './stldata';
-
+import { findNeighborhood } from './getUserNeighborhood';
+import { countDocumentsByNeighborhood } from './GetScore'
 import * as Location from 'expo-location';
-
-
 
 const ScoresViewScreen = ({ navigation, route }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -18,8 +17,8 @@ const ScoresViewScreen = ({ navigation, route }) => {
   const [numOfScreens, setNumOfScreens] = useState(0);
   const [currentColor, setCurrentColor] = useState("white");
   const isFocused = useIsFocused();
-  const [long, setLong] = useState("");
-  const [lat, setLat] = useState("");
+  const [location, setLocation] = useState(null);
+
   const { index } = route.params;
 
 
@@ -37,18 +36,43 @@ const ScoresViewScreen = ({ navigation, route }) => {
 
   const loadData = async () => {
     try {
-      const data = await AsyncStorage.getItem('neighborhoods');
-      if (data !== null) {
-        const parsedData = JSON.parse(data);
-        setNeighborhoods(parsedData);
-        // Set numOfScreens once data is loaded
-        setNumOfScreens(Object.keys(parsedData).length);
-        // Set currentIndex to the index passed from route.params
-        setCurrentIndex(index);
+      const storedLocation = await AsyncStorage.getItem('currentLocation');
+      if (storedLocation !== null) {
+        const parsedLocation = JSON.parse(storedLocation);
+        console.log("Current location retrieved from AsyncStorage:");
+        console.log(parsedLocation);
+        setLocation(parsedLocation)
+        // console.log(findNeighborhood(location["longitude"], location["latitude"]))
+      } else {
+        console.log("No current location found in AsyncStorage.");
       }
     } catch (error) {
       console.error('Error loading data:', error);
     }
+    const neighborhoodData = await AsyncStorage.getItem('neighborhoods');
+    if (neighborhoodData !== null) {
+      const parsedData = JSON.parse(neighborhoodData);
+      // const currentLoc = findNeighborhood(location["longitude"], location["latitude"])
+      // if (currentLoc == null) {
+      //   const additionalEntry = {
+      //     [currentLoc]: { count: null, ratio: null}
+      //   };
+      //   parsedData = { ...additionalEntry, ...parsedData };
+      // } else {
+      //   const [count, ratio] = countDocumentsByNeighborhood(currentLoc);
+
+      //   const additionalEntry = {
+      //     [currentLoc]: { count: count, ratio: ratio}
+      //   };
+
+      //   // Merge the new object with the existing parsedData
+      //   parsedData = { ...additionalEntry, ...parsedData };
+      // }
+      setNeighborhoods(parsedData);
+      setNumOfScreens(Object.keys(parsedData).length);
+      setCurrentIndex(index);
+    }
+
   };
 
   const getBackgroundColor = (count) => {
@@ -102,10 +126,19 @@ const ScoresViewScreen = ({ navigation, route }) => {
   // Add your current location screen here
   const generateCurrentLocationScreen = () => {
 
+    if (!location) {
+      // Location data not available yet, return null or a loading indicator
+      return () => {
+        <SafeAreaView style={styles.container}>
+          <ActivityIndicator size="large" color="#0d3b66" />
+        </SafeAreaView>
+      };
+    }
+
     return () => (
       <SafeAreaView style={styles.container}>
-        <Text>{long}</Text>
-        <Text>{lat}</Text>
+        <Text>Latitude: {location.latitude}</Text>
+        <Text>Longitude: {location.longitude}</Text>
       </SafeAreaView>
     );
 
@@ -114,23 +147,23 @@ const ScoresViewScreen = ({ navigation, route }) => {
 
 
   const currentLocationScreen = {
-    key: "currentLocation", // Add unique key
+    key: "currentLocation",
     component: generateCurrentLocationScreen()
   };
 
 
+  // Add currentLocationScreen at the beginning of screens array
   const screens = Array.from({ length: numOfScreens }, (_, index) => {
-    if (index === numOfScreens) {
-      return currentLocationScreen;
-    } else {
-      const entriesArray = Object.entries(neighborhoods);
-      const [neighborhood, data] = entriesArray[index];
-      return {
-        key: neighborhood, // Add unique key
-        component: generateScreen(neighborhood, data),
-      };
-    }
+    const entriesArray = Object.entries(neighborhoods);
+    const [neighborhood, data] = entriesArray[index];
+    return {
+      key: neighborhood, // Add unique key
+      component: generateScreen(neighborhood, data),
+    };
   });
+
+  // Adjust numOfScreens to include the additional screen
+  // const adjustedNumOfScreens = numOfScreens + 1;
 
   const handleScroll = (event) => {
     const offsetX = event.nativeEvent.contentOffset.x;
@@ -138,14 +171,12 @@ const ScoresViewScreen = ({ navigation, route }) => {
     setCurrentIndex(index);
 
     const entriesArray = Object.entries(neighborhoods);
-    const [neighborhood, data] = entriesArray[index];
-    setCurrentNeighborhood(neighborhood);
-  };
 
-  const scrollToIndex = (index) => {
-    if (scrollViewRef.current && scrollViewRef.current.scrollTo) {
-      scrollViewRef.current.scrollTo({ x: index * Dimensions.get('window').width, animated: true });
+    if (entriesArray.length > 0 && index - 1 < entriesArray.length) {
+      const [neighborhood, data] = entriesArray[index];
+      setCurrentNeighborhood(neighborhood);
     }
+
   };
 
   const renderItem = ({ item }) => (
@@ -158,6 +189,7 @@ const ScoresViewScreen = ({ navigation, route }) => {
     <SafeAreaView style={{ flex: 1, backgroundColor: "#0d3b66" }}>
       <FlatList
         data={screens}
+        ref={scrollViewRef}
         renderItem={renderItem}
         horizontal
         pagingEnabled

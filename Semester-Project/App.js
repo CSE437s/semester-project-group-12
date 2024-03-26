@@ -19,26 +19,30 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [uidLoaded, setUidLoaded] = useState(false);
-  const [location, setLocation] = useState(); 
+  // const [location, setLocation] = useState();
 
-  /*
-    useEffect(() => {
-        const getPermissions = async () => {
-            let { status } = await Location.requestForegroundPermissionsAsync();
-            if (status !== 'granted') {
-                console.log("Please grant location permissions");
-                return;
-            }
 
-            let currentLocation = await Location.getCurrentPositionAsync({});
-            setLocation(currentLocation);
-            console.log("Location:");
-            console.log(currentLocation.coords.longitude);
-            console.log(currentLocation.coords.latitude);
-        };
-        getPermissions();
-    }, []);
-    */
+  useEffect(() => {
+    const getPermissions = async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        console.log("Please grant location permissions");
+        return;
+      }
+
+      let currentLocation = await Location.getCurrentPositionAsync({});
+      // setLocation(currentLocation);
+
+      // Store current location in AsyncStorage
+      await AsyncStorage.setItem('currentLocation', JSON.stringify({
+        latitude: currentLocation.coords.latitude,
+        longitude: currentLocation.coords.longitude
+      }));
+      console.log("Current location stored in AsyncStorage.");
+    };
+    getPermissions();
+  }, []);
+
 
   const loadData = async (uid) => {
     try {
@@ -98,7 +102,7 @@ export default function App() {
             headerTitleStyle: {
               fontWeight: 'bold',
             },
-            
+
           }}
         >
           <AuthenticatedStack.Screen
@@ -124,7 +128,7 @@ export default function App() {
               }}
             />
           </AuthenticatedStack.Group>
-          
+
           <AuthenticatedStack.Group>
             <AuthenticatedStack.Screen
               name="ScoresViewScreen"
