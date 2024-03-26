@@ -9,7 +9,7 @@ import { neighborhoodMapping } from './stldata';
 import * as Location from 'expo-location';
 
 
-const ScoresViewScreen = ({ navigation }) => {
+const ScoresViewScreen = ({ navigation, route }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentNeighborhood, setCurrentNeighborhood] = useState(1);
   const [neighborhoods, setNeighborhoods] = useState([]);
@@ -19,14 +19,25 @@ const ScoresViewScreen = ({ navigation }) => {
   const isFocused = useIsFocused();
   const [long, setLong] = useState("");
   const [lat, setLat] = useState("");
+  const { index } = route.params;
 
 
   useEffect(() => {
     if (isFocused) {
       loadData();
       // scrollToIndex(3)
+      setCurrentIndex(index);
+      console.log("setting current index to " + index)
     }
-  }, [isFocused]);
+  }, [isFocused, index]);
+
+  useEffect(() => {
+    if (scrollViewRef.current && currentIndex > 0) {
+      scrollViewRef.current.scrollTo({ x: currentIndex * Dimensions.get('window').width, animated: true });
+      console.log("scrolling to " + currentIndex)
+
+    }
+  }, [currentIndex]);
 
   const loadData = async () => {
     try {
@@ -129,18 +140,25 @@ const ScoresViewScreen = ({ navigation }) => {
     setCurrentNeighborhood(neighborhood);
   };
 
+  const scrollToIndex = (index) => {
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({ x: index * Dimensions.get('window').width, animated: true });
+    }
+  };
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#0d3b66" }}>
       <ScrollView
         ref={scrollViewRef}
         horizontal
         pagingEnabled
-        showsHorizontalScrollIndicator={false}
+        showsHorizontalScrollIndicator={true}
         onScroll={handleScroll}
         scrollEventThrottle={16}
+        initialPage={2}
       >
         {screens.map((screen, index) => (
-          <View key={index} style={{ width: Dimensions.get('window').width, borderWidth: 1, borderColor: "white" }}>
+          <View key={index} style={{ width: Dimensions.get('window').width}}>
 
             {screen.component()}
           </View>
@@ -151,12 +169,16 @@ const ScoresViewScreen = ({ navigation }) => {
         <TouchableOpacity
           style={styles.bottomBarButton}
           onPress={() => {
+            console.log("pressed")
             const feature = neighborhoodsData.features.find(f => f.properties.NHD_NUM === neighborhoodMapping[currentNeighborhood]);
-            if (!feature) return null;
-            const outerBoundary = feature.geometry.coordinates[0];
-            const centroid = calculateCentroid(outerBoundary);
-            
-            navigation.navigate('MapScreen', { long: centroid[0], lat: centroid[1] });
+            if (!feature) {
+              navigation.navigate('MapScreen', { long: -90.236402, lat: 38.627003 });
+            } else {
+              const outerBoundary = feature.geometry.coordinates[0];
+              const centroid = calculateCentroid(outerBoundary);
+              navigation.navigate('MapScreen', { long: centroid[0], lat: centroid[1] });
+            };
+
           }}
         >
           <FontAwesomeIcon name="map" size={24} color="white" />

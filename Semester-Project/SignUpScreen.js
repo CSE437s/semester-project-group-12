@@ -1,7 +1,7 @@
 import { React, useState } from 'react';
 import { StyleSheet, Text, SafeAreaView, TouchableOpacity, TextInput, View } from 'react-native';
 import { auth } from './firebaseConfig';
-import { createUserWithEmailAndPassword } from "firebase/auth"
+import { createUserWithEmailAndPassword, sendEmailVerification} from "firebase/auth"
 import { Input, Icon } from 'react-native-elements';
 
 
@@ -9,20 +9,22 @@ const SignUpScreen = ({ navigation }) => {
   const [signUpEmail, onChangeSignUpEmail] = useState('');
   const [signUpPassword, onChangeSignUpPassword] = useState('');
  
-  const signUp = () => {
-
-    createUserWithEmailAndPassword(auth, signUpEmail, signUpPassword)
-      .then((userCredential) => {
-        console.log("You're signed up!");
-      })
-      .catch((error) => {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        console.log(errorCode)
-        console.log(errorMessage)
-      });
-
+  
+const signUp = async () => {
+  try {
+    // Create user with email and password
+    await createUserWithEmailAndPassword(auth, signUpEmail, signUpPassword);
+    console.log("You're signed up!");
+    // Send email verification
+    await sendEmailVerification(auth.currentUser);
+    console.log("Verification email sent.");
+  } catch (error) {
+    const errorCode = error.code;
+    const errorMessage = error.message;
+    console.error(errorCode, errorMessage);
+    // Handle errors
   }
+};
   const navToLogin = () => {
     navigation.navigate('LogInScreen')
 

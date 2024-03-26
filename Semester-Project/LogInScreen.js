@@ -13,7 +13,7 @@ const SignUpScreen = ({ navigation }) => {
 
   const logIn = async () => {
     try {
-        await signInWithEmailAndPassword(auth, logInEmail, logInPassword);
+        const userCredential = await signInWithEmailAndPassword(auth, logInEmail, logInPassword);
         console.log("You're logged in!");
         // navigation.navigate("SearchScreen");
         // try {

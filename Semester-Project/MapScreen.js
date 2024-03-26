@@ -135,7 +135,7 @@ const MapScreen = ({ navigation }) => {
         const outerBoundary = feature.geometry.coordinates[0];
         const centroid = calculateCentroid(outerBoundary);
         const score = safetyScores[name];
-        const safetyInfo = score ? `Safety: ${score[0]}, Ratio: ${score[1]}` : 'Loading...';
+        const safetyInfo = score ? `Score: ${score[0]}` : 'Loading...';
 
         return (
             <Marker

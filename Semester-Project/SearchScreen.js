@@ -58,8 +58,8 @@ const SearchScreen = ({ navigation }) => {
 
   }
 
-  const onPressedTab = (item) => {
-    navigation.navigate('ScoresViewScreen', { name: item.neighborhood })
+  const onPressedTab = (item, index) => {
+    navigation.navigate('ScoresViewScreen', { name: item.neighborhood, index})
   }
 
   const renderSuggestion = ({ item }) => (
@@ -68,9 +68,13 @@ const SearchScreen = ({ navigation }) => {
     </TouchableOpacity>
   );
 
-  const renderNeighborhoodTab = ({ item }) => (
-    
-    <TouchableOpacity onPress={() => onPressedTab(item)} style={[styles.neighborhoodTab, { backgroundColor: getBackgroundColor(item.count) }]}>
+  const renderNeighborhoodTab = ({ item, index }) => (
+
+    <TouchableOpacity
+      onPress={() => onPressedTab(item, index)}
+      style={[styles.neighborhoodTab, { backgroundColor: getBackgroundColor(item.count) }]}
+    >
+
       <View style={styles.tabContent}>
         <Text style={styles.tabText}>{item.neighborhood}</Text>
         <Text style={styles.tabCount}>{item.count}</Text>
@@ -80,17 +84,17 @@ const SearchScreen = ({ navigation }) => {
 
   const getBackgroundColor = (count) => {
     if (count !== null) {
-        if (count > 70) {
-            return '#d7481d'; // Red
-        } else if (count > 40) {
-            return '#FFBF00'; // Yellow
-        } else {
-            return '#26A65B'; // Green
-        }
+      if (count > 70) {
+        return '#d7481d'; // Red
+      } else if (count > 40) {
+        return '#FFBF00'; // Yellow
+      } else {
+        return '#26A65B'; // Green
+      }
     } else {
-        return '#26A65B'; // Default color when count is null (loading)
+      return '#26A65B'; // Default color when count is null (loading)
     }
-};
+  };
 
   return (
     <SafeAreaView style={styles.container}>
