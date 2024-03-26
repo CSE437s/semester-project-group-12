@@ -164,7 +164,6 @@ const MapScreen = ({ navigation }) => {
     }
 
     return (
-        <SafeAreaView style={styles.container}>
             <View style={styles.container}>
                 <MapView
                     ref={mapRef}
@@ -191,7 +190,6 @@ const MapScreen = ({ navigation }) => {
                     )}
                 </MapView>
             </View>
-        </SafeAreaView>
     );
 };
 
