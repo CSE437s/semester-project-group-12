@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { StyleSheet, View, Text, Dimensions, SafeAreaView, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, Text, Dimensions, SafeAreaView, TouchableOpacity, FlatList, ActivityIndicator, Share } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
@@ -52,6 +52,7 @@ const ScoresViewScreen = ({ navigation, route }) => {
     const neighborhoodData = await AsyncStorage.getItem('neighborhoods');
     if (neighborhoodData !== null) {
       const parsedData = JSON.parse(neighborhoodData);
+      setCurrentNeighborhood(Object.entries(parsedData)[0][0]);
       // const currentLoc = findNeighborhood(location["longitude"], location["latitude"])
       // if (currentLoc == null) {
       //   const additionalEntry = {
@@ -209,7 +210,8 @@ const ScoresViewScreen = ({ navigation, route }) => {
         <TouchableOpacity
           style={styles.bottomBarButton}
           onPress={() => {
-            console.log("pressed")
+            console.log("Current Neighborhood: " + currentNeighborhood)
+
             const feature = neighborhoodsData.features.find(f => f.properties.NHD_NUM === neighborhoodMapping[currentNeighborhood]);
             if (!feature) {
               navigation.navigate('MapScreen', { long: -90.236402, lat: 38.627003 });

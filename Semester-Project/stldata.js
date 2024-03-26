@@ -105,7 +105,7 @@ let neighborhoodMapping = {
     "Downtown West": 5115,
     "Dutchtown": 15356,
     "Ellendale": 1385,
-    "Fairground Neighborhood": 1157,
+    "Fairground": 1157,
     "Fairground Park": 12,
     "Forest Park": 50,
     "Forest Park South East": 3458,
