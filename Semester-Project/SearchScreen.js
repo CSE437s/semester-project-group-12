@@ -15,7 +15,6 @@ const SearchScreen = ({ navigation }) => {
   const isFocused = useIsFocused();
 
   useEffect(() => {
-    console.log("ran");
     if (isFocused) {
       console.log("focused");
       loadData();

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { StyleSheet, View, Text, ScrollView, Dimensions, SafeAreaView, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, Dimensions, SafeAreaView, TouchableOpacity, FlatList } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
@@ -7,6 +7,7 @@ import neighborhoodsData from './neighborhoods.json';
 import { neighborhoodMapping } from './stldata';
 
 import * as Location from 'expo-location';
+
 
 
 const ScoresViewScreen = ({ navigation, route }) => {
@@ -25,30 +26,25 @@ const ScoresViewScreen = ({ navigation, route }) => {
   useEffect(() => {
     if (isFocused) {
       loadData();
-      // scrollToIndex(3)
-      setCurrentIndex(index);
-      console.log("setting current index to " + index)
     }
-  }, [isFocused, index]);
+  }, [isFocused]);
 
   useEffect(() => {
-    if (scrollViewRef.current && currentIndex > 0) {
-      scrollViewRef.current.scrollTo({ x: currentIndex * Dimensions.get('window').width, animated: true });
-      console.log("scrolling to " + currentIndex)
+    setCurrentIndex(index);
+  }, [index]);
 
-    }
-  }, [currentIndex]);
+
 
   const loadData = async () => {
     try {
-      // let currentLocation = await Location.getCurrentPositionAsync({});
-      // setLat(currentLocation.coords.latitude);
-      // setLong(currentLocation.coords.longitude);
       const data = await AsyncStorage.getItem('neighborhoods');
       if (data !== null) {
         const parsedData = JSON.parse(data);
         setNeighborhoods(parsedData);
-        setNumOfScreens(Object.keys(parsedData).length)
+        // Set numOfScreens once data is loaded
+        setNumOfScreens(Object.keys(parsedData).length);
+        // Set currentIndex to the index passed from route.params
+        setCurrentIndex(index);
       }
     } catch (error) {
       console.error('Error loading data:', error);
@@ -118,16 +114,22 @@ const ScoresViewScreen = ({ navigation, route }) => {
 
 
   const currentLocationScreen = {
+    key: "currentLocation", // Add unique key
     component: generateCurrentLocationScreen()
   };
 
 
   const screens = Array.from({ length: numOfScreens }, (_, index) => {
-    const entriesArray = Object.entries(neighborhoods);
-    const [neighborhood, data] = entriesArray[index];
-    return {
-      component: generateScreen(neighborhood, data),
-    };
+    if (index === numOfScreens) {
+      return currentLocationScreen;
+    } else {
+      const entriesArray = Object.entries(neighborhoods);
+      const [neighborhood, data] = entriesArray[index];
+      return {
+        key: neighborhood, // Add unique key
+        component: generateScreen(neighborhood, data),
+      };
+    }
   });
 
   const handleScroll = (event) => {
@@ -141,29 +143,35 @@ const ScoresViewScreen = ({ navigation, route }) => {
   };
 
   const scrollToIndex = (index) => {
-    if (scrollViewRef.current) {
+    if (scrollViewRef.current && scrollViewRef.current.scrollTo) {
       scrollViewRef.current.scrollTo({ x: index * Dimensions.get('window').width, animated: true });
     }
   };
 
+  const renderItem = ({ item }) => (
+    <View style={{ width: Dimensions.get('window').width }}>
+      {item.component()}
+    </View>
+  );
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#0d3b66" }}>
-      <ScrollView
-        ref={scrollViewRef}
+      <FlatList
+        data={screens}
+        renderItem={renderItem}
         horizontal
         pagingEnabled
-        showsHorizontalScrollIndicator={true}
+        showsHorizontalScrollIndicator={false}
         onScroll={handleScroll}
-        scrollEventThrottle={16}
-        initialPage={2}
-      >
-        {screens.map((screen, index) => (
-          <View key={index} style={{ width: Dimensions.get('window').width}}>
-
-            {screen.component()}
-          </View>
-        ))}
-      </ScrollView>
+        scrollEventThrottle={10}
+        initialScrollIndex={currentIndex}
+        keyExtractor={item => item.key}
+        getItemLayout={(data, index) => ({
+          length: Dimensions.get('window').width,
+          offset: Dimensions.get('window').width * index,
+          index,
+        })}
+      />
 
       <View style={styles.bottomBar}>
         <TouchableOpacity
