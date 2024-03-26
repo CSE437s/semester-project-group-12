@@ -3,12 +3,15 @@ import { StyleSheet, View, Text, ScrollView, Dimensions, SafeAreaView, Touchable
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
+import neighborhoodsData from './neighborhoods.json';
+import { neighborhoodMapping } from './stldata';
 
 import * as Location from 'expo-location';
 
 
 const ScoresViewScreen = ({ navigation }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentNeighborhood, setCurrentNeighborhood] = useState(1);
   const [neighborhoods, setNeighborhoods] = useState([]);
   const scrollViewRef = useRef(null);
   const [numOfScreens, setNumOfScreens] = useState(0);
@@ -53,6 +56,19 @@ const ScoresViewScreen = ({ navigation }) => {
     }
   };
 
+  function calculateCentroid(polygon) {
+    let x = 0, y = 0, area = 0;
+    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+      const xi = polygon[i][0], yi = polygon[i][1];
+      const xj = polygon[j][0], yj = polygon[j][1];
+      const f = xi * yj - xj * yi;
+      x += (xi + xj) * f;
+      y += (yi + yj) * f;
+      area += f * 3;
+    }
+    return area ? [x / area, y / area] : [0, 0];
+  }
+
   const generateScreen = (neighborhood, data) => {
     const count = data.count;
     const ratio = data.ratio;
@@ -78,8 +94,6 @@ const ScoresViewScreen = ({ navigation }) => {
 
   // Add your current location screen here
   const generateCurrentLocationScreen = () => {
-
-
 
     return () => (
       <SafeAreaView style={styles.container}>
@@ -109,6 +123,10 @@ const ScoresViewScreen = ({ navigation }) => {
     const offsetX = event.nativeEvent.contentOffset.x;
     const index = Math.round(offsetX / Dimensions.get('window').width);
     setCurrentIndex(index);
+
+    const entriesArray = Object.entries(neighborhoods);
+    const [neighborhood, data] = entriesArray[index];
+    setCurrentNeighborhood(neighborhood);
   };
 
   return (
@@ -133,7 +151,12 @@ const ScoresViewScreen = ({ navigation }) => {
         <TouchableOpacity
           style={styles.bottomBarButton}
           onPress={() => {
-            navigation.navigate('MapScreen');
+            const feature = neighborhoodsData.features.find(f => f.properties.NHD_NUM === neighborhoodMapping[currentNeighborhood]);
+            if (!feature) return null;
+            const outerBoundary = feature.geometry.coordinates[0];
+            const centroid = calculateCentroid(outerBoundary);
+            
+            navigation.navigate('MapScreen', { long: centroid[0], lat: centroid[1] });
           }}
         >
           <FontAwesomeIcon name="map" size={24} color="white" />

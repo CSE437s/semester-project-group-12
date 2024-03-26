@@ -7,11 +7,14 @@ import countDocumentsByNeighborhood from './GetScore';
 import { neighborhoodMapping } from './stldata';
 import neighborhoodsData from './neighborhoods.json';
 import userLocationImage from './userLocation.png'; // Make sure this path is correct
+import { useRoute } from '@react-navigation/native';
 
 const MapScreen = ({ navigation }) => {
     const [userLocation, setUserLocation] = useState(null);
     const [safetyScores, setSafetyScores] = useState({});
     const mapRef = useRef(null);
+    const route = useRoute();
+    const { long, lat } = route.params;
 
     const getMarkerColor = (score) => {
         if (score === undefined) return 'white';
@@ -41,33 +44,40 @@ const MapScreen = ({ navigation }) => {
 
     useEffect(() => {
         (async () => {
-            const storedLocation = await loadLocation();
-            if (storedLocation) {
-                setUserLocation(storedLocation);
+             
                 mapRef.current?.animateToRegion({
-                    latitude: storedLocation.latitude,
-                    longitude: storedLocation.longitude,
-                    latitudeDelta: 0.08,
-                    longitudeDelta: 0.08,
+                    latitude: lat,
+                    longitude: long,
+                    latitudeDelta: 0.025,
+                    longitudeDelta: 0.025,
                 }, 1000);
-            } else {
-                let { status } = await Location.requestForegroundPermissionsAsync();
-                if (status !== 'granted') {
-                    console.log("Location permission not granted");
-                    return;
-                }
+            // const storedLocation = await loadLocation();
+            // if (storedLocation) {
+            //     setUserLocation(storedLocation);
+            //     mapRef.current?.animateToRegion({
+            //         latitude: storedLocation.latitude,
+            //         longitude: storedLocation.longitude,
+            //         latitudeDelta: 0.08,
+            //         longitudeDelta: 0.08,
+            //     }, 1000);
+            // } else {
+            //     let { status } = await Location.requestForegroundPermissionsAsync();
+            //     if (status !== 'granted') {
+            //         console.log("Location permission not granted");
+            //         return;
+            //     }
 
-                let currentLocation = await Location.getCurrentPositionAsync({});
-                setUserLocation(currentLocation.coords);
-                saveLocation(currentLocation.coords);
+            //     let currentLocation = await Location.getCurrentPositionAsync({});
+            //     setUserLocation(currentLocation.coords);
+            //     saveLocation(currentLocation.coords);
 
-                mapRef.current?.animateToRegion({
-                    latitude: currentLocation.coords.latitude,
-                    longitude: currentLocation.coords.longitude,
-                    latitudeDelta: 0.08,
-                    longitudeDelta: 0.08,
-                }, 1000);
-            }
+            //     mapRef.current?.animateToRegion({
+            //         latitude: currentLocation.coords.latitude,
+            //         longitude: currentLocation.coords.longitude,
+            //         latitudeDelta: 0.08,
+            //         longitudeDelta: 0.08,
+            //     }, 1000);
+            // }
         })();
     }, []);
 
