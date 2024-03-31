@@ -5,6 +5,11 @@ import { useIsFocused } from '@react-navigation/native';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
 import Slider from '@react-native-community/slider';
 import { Emoji } from 'react-native-emoji-selector';
+import { db, auth } from './firebaseConfig'; 
+import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
+
+
+
 
 import neighborhoodsData from './neighborhoods.json';
 import { neighborhoodMapping } from './stldata';
@@ -54,7 +59,80 @@ const ScoresViewScreen = ({ navigation, route }) => {
     if (rating === 2) { return '🙂' }
 
     if (rating === 1) { return '😁' }
-  }
+    }
+
+    const sendRatingToFirestore = async () => {
+        const neighborhoodName = currentNeighborhood;
+        const ratingValue = rating;
+        const userId = auth.currentUser ? auth.currentUser.uid : null; 
+
+        if (!userId) {
+            console.log('User is not logged in.');
+            return;
+        }
+
+        try {
+            // Check if the user has already rated this neighborhood
+            const ratingsRef = collection(db, 'user_ratings');
+            const q = query(ratingsRef, where('neighborhood', '==', neighborhoodName), where('userId', '==', userId));
+
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+                console.log('You have already rated this neighborhood.');
+                return;
+            }
+
+            await addDoc(ratingsRef, {
+                neighborhood: neighborhoodName,
+                rating: ratingValue,
+                userId: userId,
+                timestamp: new Date(),
+            });
+
+            console.log('Rating sent to Firestore successfully!');
+            setRating(0); // Optionally reset the rating slider to 0 or any initial value
+        } catch (error) {
+            console.error("Error adding document to Firestore: ", error);
+        }
+    };
+
+    const fetchAverageRating = async () => {
+        const neighborhoodName = currentNeighborhood;
+
+        // Ensure there's a valid neighborhood name to search for
+        if (!neighborhoodName) {
+            console.log('Current neighborhood is not set.');
+            return;
+        }
+
+        try {
+            const ratingsRef = collection(db, 'user_ratings');
+            const q = query(ratingsRef, where('neighborhood', '==', neighborhoodName));
+
+            const querySnapshot = await getDocs(q);
+            let totalRatings = 0;
+            let ratingsCount = 0;
+
+            querySnapshot.forEach((doc) => {
+                totalRatings += doc.data().rating;
+                ratingsCount += 1;
+            });
+
+            // Check if there are any ratings to avoid division by zero
+            if (ratingsCount > 0) {
+                const averageRating = totalRatings / ratingsCount;
+                console.log(`Average rating for ${neighborhoodName}: ${averageRating}`);
+            } else {
+                console.log(`No ratings found for ${neighborhoodName}.`);
+            }
+        } catch (error) {
+            console.error("Error fetching ratings from Firestore: ", error);
+        }
+    };
+
+
+
+
   const loadData = async () => {
     try {
       const storedLocation = await AsyncStorage.getItem('currentLocation');
@@ -151,7 +229,18 @@ const ScoresViewScreen = ({ navigation, route }) => {
           maximumValue={5}
           step={1}
           onValueChange={setRating}
-        />
+            />
+            {
+                rating > 0 && (
+                    <TouchableOpacity
+                        style={styles.submitButton}
+                        onPress={sendRatingToFirestore}
+                    >
+                        <Text style={styles.submitButtonText}>Submit Rating</Text>
+                    </TouchableOpacity>
+                )
+            }
+
 
 
         <Text style={styles.statusText}> Danger Level: {getBackgroundColor(count)?.status}</Text>
