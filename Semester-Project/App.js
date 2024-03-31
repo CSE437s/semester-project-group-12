@@ -19,6 +19,8 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [uidLoaded, setUidLoaded] = useState(false);
+  const [emailVerified, setEmailVerified] = useState(false);
+
   // const [location, setLocation] = useState();
 
 
@@ -62,11 +64,22 @@ export default function App() {
       if (authUser) {
         await loadData(authUser.uid);
         setUidLoaded(true);
+        setEmailVerified(authUser.emailVerified)
+      }
+
+    });
+
+    const emailVerificationUnsubscribe = auth.onIdTokenChanged(async (authUser) => {
+      if (authUser) {
+        setEmailVerified(authUser.emailVerified);
       }
     });
 
-    return () => unsubscribe();
-  }, []);
+    return () => {
+      unsubscribe();
+      emailVerificationUnsubscribe();
+    };
+    }, []);
 
 
   const AuthenticatedStack = createNativeStackNavigator();
@@ -91,7 +104,7 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      {(user && uidLoaded) ? (
+      {(user && uidLoaded && emailVerified) ? (
         <AuthenticatedStack.Navigator
           initialRouteName="SearchScreen"
           screenOptions={{

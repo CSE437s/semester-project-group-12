@@ -1,7 +1,6 @@
-import React from 'react';
-import { StyleSheet, Text, SafeAreaView, TouchableOpacity } from 'react-native';
+import { React, useState, useEffect } from 'react';
+import { StyleSheet, Text, SafeAreaView, TouchableOpacity, Modal, View} from 'react-native';
 import { auth } from './firebaseConfig';
-import { useState } from 'react';
 import { signInWithEmailAndPassword } from "firebase/auth"
 import { Input, Icon } from 'react-native-elements';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -10,30 +9,69 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const SignUpScreen = ({ navigation }) => {
   const [logInEmail, onChangeLogInEmail] = useState('');
   const [logInPassword, onChangeLogInPassword] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
+  const [errorText, setErrorText] = useState("");
 
   const logIn = async () => {
     try {
-        const userCredential = await signInWithEmailAndPassword(auth, logInEmail, logInPassword);
+      const userCredential = await signInWithEmailAndPassword(auth, logInEmail, logInPassword);
+      if (userCredential.user.emailVerified) {
         console.log("You're logged in!");
-        // navigation.navigate("SearchScreen");
-        // try {
-        //     const neighborhoods = await getAllNeighborhoods(userCredential.user.uid);
-        //     await AsyncStorage.setItem('neighborhoods', JSON.stringify(neighborhoods));
-            
-        // } catch (error) {
-        //     console.error('Error saving data:', error);
-        // }
-   
+      } else {
+        setErrorText("Email hasn't been verified.");
+        setModalVisible(true);
+      }
+      // navigation.navigate("SearchScreen");
+      // try {
+      //     const neighborhoods = await getAllNeighborhoods(userCredential.user.uid);
+      //     await AsyncStorage.setItem('neighborhoods', JSON.stringify(neighborhoods));
+
+      // } catch (error) {
+      //     console.error('Error saving data:', error);
+      // }
+
     } catch (error) {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        console.log(errorCode);
-        console.log(errorMessage);
+      const errorCode = error.code;
+      const errorMessage = error.message;
+      switch (errorCode) {
+        case 'auth/invalid-credential':
+          setErrorText("Incorrect email or password.\nPlease try again.");
+          setModalVisible(true);
+          break;
+        default:
+          console.log(errorMessage);
+          setErrorText("Error: " + errorMessage);
+          setModalVisible(true);
+          break;
+      }
     }
-};
+    
+
+  };
+  useEffect(() => {
+    if (modalVisible) {
+      const timer = setTimeout(() => {
+        setModalVisible(false);
+      }, 3000); 
+      return () => clearTimeout(timer);
+    }
+  }, [modalVisible]);
   return (
     <SafeAreaView style={styles.container}>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => {
+          setModalVisible(!modalVisible);
+        }}>
+        <View style={styles.floaterBackgroud}>
+          <View style={styles.floaterForeground}>
+            <Text numberOfLines={3} style={styles.floaterText}>{errorText}</Text>
 
+          </View>
+        </View>
+      </Modal>
       <Input
         style={styles.input}
         placeholder="Email"
@@ -86,5 +124,28 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
   },
+  floaterBackgroud: {
+    flex: 1,
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0)'
+  },
+  floaterForeground: {
+    backgroundColor: 'white',
+    padding: 15,
+    marginTop: 60,
+    width: '75%',
+    height: '9%',
+    alignItems: 'center',
+    borderRadius: 10,
+    backgroundColor: '#3498db',
+    justifyContent: 'center'
 
+  },
+  floaterText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center'
+  }
 });

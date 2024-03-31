@@ -46,17 +46,17 @@ const SearchScreen = ({ navigation }) => {
 
   const loadData = async () => {
     try {
-      const data = await AsyncStorage.getItem('neighborhoods');
-      console.log(data);
-      if (data !== null) {
-        const parsedData = JSON.parse(data);
-        setNeighborhoods(parsedData);
-        console.log('Data loaded successfully:', parsedData);
-      }
+        const data = await AsyncStorage.getItem('neighborhoods');
+        if (data && data !== "null" && data !== "undefined") {
+            console.log("data: " + data);
+            const parsedData = JSON.parse(data);
+            setNeighborhoods(parsedData);
+            console.log('Data loaded successfully:', parsedData);
+        }
     } catch (error) {
-      console.error('Error loading data:', error);
+        console.error('Error loading data:', error);
     }
-  };
+};
 
   const deleteNeigh = (neighborhoodName) => {
     // Confirm deletion
