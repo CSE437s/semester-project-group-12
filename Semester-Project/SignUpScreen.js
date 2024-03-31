@@ -26,7 +26,7 @@ const SignUpScreen = ({ navigation }) => {
         await auth.currentUser.reload();
         userVerified = auth.currentUser.emailVerified;
         if (!userVerified) {
-          await new Promise(resolve => setTimeout(resolve, 3)); // Wait for 10 seconds before checking again
+          await new Promise(resolve => setTimeout(resolve, 3)); // Wait for 3 seconds before checking again
         }
       }
     } catch (error) {

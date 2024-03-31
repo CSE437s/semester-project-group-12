@@ -3,6 +3,9 @@ import { StyleSheet, View, Text, Dimensions, SafeAreaView, TouchableOpacity, Fla
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
+import Slider from '@react-native-community/slider';
+import { Emoji } from 'react-native-emoji-selector';
+
 import neighborhoodsData from './neighborhoods.json';
 import { neighborhoodMapping } from './stldata';
 import { findNeighborhood } from './getUserNeighborhood';
@@ -18,6 +21,9 @@ const ScoresViewScreen = ({ navigation, route }) => {
   const [currentColor, setCurrentColor] = useState("white");
   const isFocused = useIsFocused();
   const [location, setLocation] = useState(null);
+  const [rating, setRating] = useState(0); // Initial rating value
+
+  const [color, setColor] = useState('#ff0000'); // Initial color value
 
   const { index } = route.params;
 
@@ -32,8 +38,23 @@ const ScoresViewScreen = ({ navigation, route }) => {
     setCurrentIndex(index);
   }, [index]);
 
+  const handleSliderChange = (value) => {
+    // Convert value to hexadecimal color
+    const hexColor = `#${Math.floor(value).toString(16).padStart(6, '0')}`;
+    setColor(hexColor);
+  };
 
+  const getRatingEmoji = () => {
+    if (rating === 5) { return '😡' }
 
+    if (rating === 4) { return '😫' }
+
+    if (rating === 3) { return '😶' }
+
+    if (rating === 2) { return '🙂' }
+
+    if (rating === 1) { return '😁' }
+  }
   const loadData = async () => {
     try {
       const storedLocation = await AsyncStorage.getItem('currentLocation');
@@ -119,6 +140,20 @@ const ScoresViewScreen = ({ navigation, route }) => {
             </>
           ) : null}
         </View>
+
+
+        <Text style={{ fontSize: 50 }}>
+          {getRatingEmoji()}
+        </Text>
+        <Slider
+          style={{ width: 200, height: 40 }}
+          minimumValue={1}
+          maximumValue={5}
+          step={1}
+          onValueChange={setRating}
+        />
+
+
         <Text style={styles.statusText}> Danger Level: {getBackgroundColor(count)?.status}</Text>
       </SafeAreaView>
     );
@@ -153,7 +188,6 @@ const ScoresViewScreen = ({ navigation, route }) => {
   };
 
 
-  // Add currentLocationScreen at the beginning of screens array
   const screens = Array.from({ length: numOfScreens }, (_, index) => {
     const entriesArray = Object.entries(neighborhoods);
     const [neighborhood, data] = entriesArray[index];
@@ -163,8 +197,6 @@ const ScoresViewScreen = ({ navigation, route }) => {
     };
   });
 
-  // Adjust numOfScreens to include the additional screen
-  // const adjustedNumOfScreens = numOfScreens + 1;
 
   const handleScroll = (event) => {
     const offsetX = event.nativeEvent.contentOffset.x;
@@ -240,6 +272,7 @@ const ScoresViewScreen = ({ navigation, route }) => {
 };
 
 export default ScoresViewScreen;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -276,7 +309,7 @@ const styles = StyleSheet.create({
     paddingVertical: 45,
     paddingHorizontal: 45,
     marginVertical: 15,
-    marginBottom: 15,
+    marginBottom: 20,
     marginTop: 10,
   },
   closeButton: {
@@ -322,12 +355,11 @@ const styles = StyleSheet.create({
   scoreComparisonContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 250,
-    marginTop: 10,
+    marginTop: 30,
+    marginBottom: 100
 
   },
   scoreComparisonText: {
-    marginLeft: 5,
     color: 'white',
     fontSize: 20,
     textAlign: 'center',
