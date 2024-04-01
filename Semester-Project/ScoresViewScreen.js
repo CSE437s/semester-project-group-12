@@ -4,7 +4,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
 import Slider from '@react-native-community/slider';
-import { Emoji } from 'react-native-emoji-selector';
 import { db, auth } from './firebaseConfig'; 
 import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
 
