@@ -389,7 +389,8 @@ const styles = StyleSheet.create({
   titleStyle: {
     color: "#fff",
     fontSize: 30,
-    marginBottom: 25,
+    marginBottom: 20,
+    marginTop: -50
   },
   scoreStyle: {
     color: "#fff",
@@ -398,7 +399,7 @@ const styles = StyleSheet.create({
   statusText: {
     color: "#fff",
     fontSize: 20,
-    marginTop: 10,
+    marginTop: 5,
   },
   borderBox: {
     borderWidth: 4,
@@ -454,7 +455,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: '1%',
-    marginBottom: '10%'
+    marginBottom: '7%'
 
   },
   scoreComparisonText: {
