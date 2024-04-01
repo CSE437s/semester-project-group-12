@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { StyleSheet, View, Text, Dimensions, SafeAreaView, TouchableOpacity, FlatList, ActivityIndicator, Share } from 'react-native';
+import { StyleSheet, View, Text, Dimensions, SafeAreaView, TouchableOpacity, FlatList, ActivityIndicator, Share, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
 import Slider from '@react-native-community/slider';
-import { db, auth } from './firebaseConfig'; 
+import { db, auth } from './firebaseConfig';
 import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
 
 
@@ -16,18 +16,25 @@ import { findNeighborhood } from './getUserNeighborhood';
 import { countDocumentsByNeighborhood } from './GetScore'
 import * as Location from 'expo-location';
 
+
+const ratingImages = {
+  5: require('./assets/Rating Emojis/Happy.png'),
+  4: require('./assets/Rating Emojis/Smile.png'),
+  3: require('./assets/Rating Emojis/Neutral.png'),
+  2: require('./assets/Rating Emojis/Sad.png'),
+  1: require('./assets/Rating Emojis/Angry.png'),
+};
+
 const ScoresViewScreen = ({ navigation, route }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentNeighborhood, setCurrentNeighborhood] = useState(1);
   const [neighborhoods, setNeighborhoods] = useState([]);
   const scrollViewRef = useRef(null);
   const [numOfScreens, setNumOfScreens] = useState(0);
-  const [currentColor, setCurrentColor] = useState("white");
   const isFocused = useIsFocused();
   const [location, setLocation] = useState(null);
-  const [rating, setRating] = useState(0); // Initial rating value
+  const [rating, setRating] = useState(3);
 
-  const [color, setColor] = useState('#ff0000'); // Initial color value
 
   const { index } = route.params;
 
@@ -42,11 +49,7 @@ const ScoresViewScreen = ({ navigation, route }) => {
     setCurrentIndex(index);
   }, [index]);
 
-  const handleSliderChange = (value) => {
-    // Convert value to hexadecimal color
-    const hexColor = `#${Math.floor(value).toString(16).padStart(6, '0')}`;
-    setColor(hexColor);
-  };
+  
 
   const getRatingEmoji = () => {
     if (rating === 5) { return '😡' }
@@ -58,76 +61,79 @@ const ScoresViewScreen = ({ navigation, route }) => {
     if (rating === 2) { return '🙂' }
 
     if (rating === 1) { return '😁' }
+  }
+  const getRatingImage = () => {
+    return ratingImages[rating];
+  };
+
+  const sendRatingToFirestore = async () => {
+    const neighborhoodName = currentNeighborhood;
+    const ratingValue = rating;
+    const userId = auth.currentUser ? auth.currentUser.uid : null;
+
+    if (!userId) {
+      console.log('User is not logged in.');
+      return;
     }
 
-    const sendRatingToFirestore = async () => {
-        const neighborhoodName = currentNeighborhood;
-        const ratingValue = rating;
-        const userId = auth.currentUser ? auth.currentUser.uid : null; 
+    try {
+      // Check if the user has already rated this neighborhood
+      const ratingsRef = collection(db, 'user_ratings');
+      const q = query(ratingsRef, where('neighborhood', '==', neighborhoodName), where('userId', '==', userId));
 
-        if (!userId) {
-            console.log('User is not logged in.');
-            return;
-        }
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        console.log('You have already rated this neighborhood.');
+        return;
+      }
 
-        try {
-            // Check if the user has already rated this neighborhood
-            const ratingsRef = collection(db, 'user_ratings');
-            const q = query(ratingsRef, where('neighborhood', '==', neighborhoodName), where('userId', '==', userId));
+      await addDoc(ratingsRef, {
+        neighborhood: neighborhoodName,
+        rating: ratingValue,
+        userId: userId,
+        timestamp: new Date(),
+      });
 
-            const querySnapshot = await getDocs(q);
-            if (!querySnapshot.empty) {
-                console.log('You have already rated this neighborhood.');
-                return;
-            }
+      console.log('Rating sent to Firestore successfully!');
+      setRating(0); // Optionally reset the rating slider to 0 or any initial value
+    } catch (error) {
+      console.error("Error adding document to Firestore: ", error);
+    }
+  };
 
-            await addDoc(ratingsRef, {
-                neighborhood: neighborhoodName,
-                rating: ratingValue,
-                userId: userId,
-                timestamp: new Date(),
-            });
+  const fetchAverageRating = async () => {
+    const neighborhoodName = currentNeighborhood;
 
-            console.log('Rating sent to Firestore successfully!');
-            setRating(0); // Optionally reset the rating slider to 0 or any initial value
-        } catch (error) {
-            console.error("Error adding document to Firestore: ", error);
-        }
-    };
+    // Ensure there's a valid neighborhood name to search for
+    if (!neighborhoodName) {
+      console.log('Current neighborhood is not set.');
+      return;
+    }
 
-    const fetchAverageRating = async () => {
-        const neighborhoodName = currentNeighborhood;
+    try {
+      const ratingsRef = collection(db, 'user_ratings');
+      const q = query(ratingsRef, where('neighborhood', '==', neighborhoodName));
 
-        // Ensure there's a valid neighborhood name to search for
-        if (!neighborhoodName) {
-            console.log('Current neighborhood is not set.');
-            return;
-        }
+      const querySnapshot = await getDocs(q);
+      let totalRatings = 0;
+      let ratingsCount = 0;
 
-        try {
-            const ratingsRef = collection(db, 'user_ratings');
-            const q = query(ratingsRef, where('neighborhood', '==', neighborhoodName));
+      querySnapshot.forEach((doc) => {
+        totalRatings += doc.data().rating;
+        ratingsCount += 1;
+      });
 
-            const querySnapshot = await getDocs(q);
-            let totalRatings = 0;
-            let ratingsCount = 0;
-
-            querySnapshot.forEach((doc) => {
-                totalRatings += doc.data().rating;
-                ratingsCount += 1;
-            });
-
-            // Check if there are any ratings to avoid division by zero
-            if (ratingsCount > 0) {
-                const averageRating = totalRatings / ratingsCount;
-                console.log(`Average rating for ${neighborhoodName}: ${averageRating}`);
-            } else {
-                console.log(`No ratings found for ${neighborhoodName}.`);
-            }
-        } catch (error) {
-            console.error("Error fetching ratings from Firestore: ", error);
-        }
-    };
+      // Check if there are any ratings to avoid division by zero
+      if (ratingsCount > 0) {
+        const averageRating = totalRatings / ratingsCount;
+        console.log(`Average rating for ${neighborhoodName}: ${averageRating}`);
+      } else {
+        console.log(`No ratings found for ${neighborhoodName}.`);
+      }
+    } catch (error) {
+      console.error("Error fetching ratings from Firestore: ", error);
+    }
+  };
 
 
 
@@ -218,27 +224,31 @@ const ScoresViewScreen = ({ navigation, route }) => {
           ) : null}
         </View>
 
+        <View style={styles.ratingContainer}>
+          <Image style={styles.ratingImage} source={getRatingImage()} />
 
-        <Text style={{ fontSize: 50 }}>
-          {getRatingEmoji()}
-        </Text>
-        <Slider
-          style={{ width: 200, height: 40 }}
-          minimumValue={1}
-          maximumValue={5}
-          step={1}
-          onValueChange={setRating}
-            />
-            {
-                rating > 0 && (
-                    <TouchableOpacity
-                        style={styles.submitButton}
-                        onPress={sendRatingToFirestore}
-                    >
-                        <Text style={styles.submitButtonText}>Submit Rating</Text>
-                    </TouchableOpacity>
-                )
-            }
+          <Slider
+            style={{ width: 200, height: 40 }}
+            minimumValue={1}
+            maximumValue={5}
+            step={1}
+            value={rating}
+            onValueChange={setRating}
+            thumbTintColor='white'
+            minimumTrackTintColor="white"
+          />
+          {
+            rating > 0 && (
+              <TouchableOpacity
+                style={styles.submitButton}
+                onPress={sendRatingToFirestore}
+              >
+                <Text style={styles.submitButtonText}>Submit Rating</Text>
+              </TouchableOpacity>
+            )
+          }
+        </View>
+
 
 
 
@@ -430,7 +440,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     backgroundColor: '#0d3b66',
-    paddingVertical: 15,
+    paddingVertical: 10,
     paddingHorizontal: 20,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -438,13 +448,13 @@ const styles = StyleSheet.create({
   bottomBarButton: {
     paddingVertical: 10,
     paddingHorizontal: 0,
-    marginBottom: 15
+    marginBottom: '5%'
   },
   scoreComparisonContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 30,
-    marginBottom: 100
+    marginTop: '1%',
+    marginBottom: '10%'
 
   },
   scoreComparisonText: {
@@ -452,4 +462,32 @@ const styles = StyleSheet.create({
     fontSize: 20,
     textAlign: 'center',
   },
+  ratingContainer: {
+    alignItems: 'center',
+    width: '75%',
+    padding: 20,
+    borderWidth: 4, 
+    borderColor: 'white', 
+    borderRadius: 10, 
+    marginBottom: '7%',
+    
+  },
+  ratingImage: {
+    width: 50,
+    height: 50,
+    marginBottom: '5%',
+  },
+  submitButton: {
+    padding: 15,
+    borderWidth: 4, 
+    borderColor: 'white', 
+    borderRadius: 10, 
+    marginTop: '5%',
+
+  },
+  submitButtonText: {
+    color: 'white',
+    fontSize: 20,
+    fontWeight: 'bold'
+  }
 });
