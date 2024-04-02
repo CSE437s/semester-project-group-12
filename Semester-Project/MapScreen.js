@@ -51,25 +51,25 @@ const MapScreen = ({ navigation }) => {
                     latitudeDelta: 0.025,
                     longitudeDelta: 0.025,
                 }, 1000);
-            // const storedLocation = await loadLocation();
-            // if (storedLocation) {
-            //     setUserLocation(storedLocation);
-            //     mapRef.current?.animateToRegion({
-            //         latitude: storedLocation.latitude,
-            //         longitude: storedLocation.longitude,
-            //         latitudeDelta: 0.08,
-            //         longitudeDelta: 0.08,
-            //     }, 1000);
-            // } else {
-            //     let { status } = await Location.requestForegroundPermissionsAsync();
-            //     if (status !== 'granted') {
-            //         console.log("Location permission not granted");
-            //         return;
-            //     }
+             const storedLocation = await loadLocation();
+             if (storedLocation) {
+                 setUserLocation(storedLocation);
+                 mapRef.current?.animateToRegion({
+                     latitude: storedLocation.latitude,
+                     longitude: storedLocation.longitude,
+                     latitudeDelta: 0.08,
+                     longitudeDelta: 0.08,
+                 }, 1000);
+             } else {
+                 let { status } = await Location.requestForegroundPermissionsAsync();
+                 if (status !== 'granted') {
+                     console.log("Location permission not granted");
+                     return;
+                 }
 
-            //     let currentLocation = await Location.getCurrentPositionAsync({});
-            //     setUserLocation(currentLocation.coords);
-            //     saveLocation(currentLocation.coords);
+                 let currentLocation = await Location.getCurrentPositionAsync({});
+                 setUserLocation(currentLocation.coords);
+                 saveLocation(currentLocation.coords);
 
             //     mapRef.current?.animateToRegion({
             //         latitude: currentLocation.coords.latitude,
@@ -77,7 +77,7 @@ const MapScreen = ({ navigation }) => {
             //         latitudeDelta: 0.08,
             //         longitudeDelta: 0.08,
             //     }, 1000);
-            // }
+             }
         })();
     }, []);
 
@@ -102,30 +102,37 @@ const MapScreen = ({ navigation }) => {
 
     useEffect(() => {
         const fetchSafetyScores = async () => {
-            // First try to load scores from storage
             const storedScoresData = await loadScoresFromStorage();
             const oneDay = 24 * 60 * 60 * 1000; // Time in milliseconds
             if (storedScoresData && new Date().getTime() - storedScoresData.timestamp < oneDay) {
-                // If scores are less than a day old, use them
                 setSafetyScores(storedScoresData.scores);
             } else {
-                // Otherwise, fetch new scores and update storage
-                let scores = {};
-                for (const name of Object.keys(neighborhoodMapping)) {
-                    try {
-                        const score = await countDocumentsByNeighborhood(name);
-                        scores[name] = score;
-                    } catch (error) {
-                        console.error(`Failed to fetch score for ${name}:`, error);
-                    }
+                try {
+                    const scorePromises = Object.keys(neighborhoodMapping).map(name =>
+                        countDocumentsByNeighborhood(name).then(score => ({ name, score }))
+                            .catch(error => {
+                                console.error(`Failed to fetch score for ${name}:`, error);
+                                return { name, score: null }; // Ensure failure for one does not stop the others
+                            })
+                    );
+                    const scoresArray = await Promise.all(scorePromises);
+                    let scores = {};
+                    scoresArray.forEach(({ name, score }) => {
+                        if (score !== null) { // Only add scores that were successfully fetched
+                            scores[name] = score;
+                        }
+                    });
+                    setSafetyScores(scores);
+                    saveScoresToStorage(scores);
+                } catch (error) {
+                    console.error("Failed to fetch safety scores:", error);
                 }
-                setSafetyScores(scores);
-                saveScoresToStorage(scores); // Save the newly fetched scores
             }
         };
 
         fetchSafetyScores();
     }, []);
+
 
 
     const markers = Object.entries(neighborhoodMapping).map(([name, number]) => {
