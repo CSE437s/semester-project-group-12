@@ -54,12 +54,12 @@ const MapScreen = ({ navigation }) => {
              const storedLocation = await loadLocation();
              if (storedLocation) {
                  setUserLocation(storedLocation);
-                 mapRef.current?.animateToRegion({
-                     latitude: storedLocation.latitude,
-                     longitude: storedLocation.longitude,
-                     latitudeDelta: 0.08,
-                     longitudeDelta: 0.08,
-                 }, 1000);
+             //    mapRef.current?.animateToRegion({
+             //        latitude: storedLocation.latitude,
+             //        longitude: storedLocation.longitude,
+             //        latitudeDelta: 0.08,
+             //        longitudeDelta: 0.08,
+             //    }, 1000);
              } else {
                  let { status } = await Location.requestForegroundPermissionsAsync();
                  if (status !== 'granted') {
