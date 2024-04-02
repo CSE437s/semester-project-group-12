@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { React, useState, useRef, useEffect } from 'react';
 import { StyleSheet, View, Text, Dimensions, SafeAreaView, TouchableOpacity, FlatList, ActivityIndicator, Share, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
@@ -6,9 +6,6 @@ import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
 import Slider from '@react-native-community/slider';
 import { db, auth } from './firebaseConfig';
 import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
-
-
-
 
 import neighborhoodsData from './neighborhoods.json';
 import { neighborhoodMapping } from './stldata';
@@ -27,14 +24,15 @@ const ratingImages = {
 
 const ScoresViewScreen = ({ navigation, route }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [currentNeighborhood, setCurrentNeighborhood] = useState(1);
+  const [currentNeighborhood, setCurrentNeighborhood] = useState("");
   const [neighborhoods, setNeighborhoods] = useState([]);
   const scrollViewRef = useRef(null);
   const [numOfScreens, setNumOfScreens] = useState(0);
   const isFocused = useIsFocused();
   const [location, setLocation] = useState(null);
   const [rating, setRating] = useState(3);
-
+  const [hasRated, setHasRated] = useState(false);
+  const [avgRating, setAvgRating] = useState(1);
 
   const { index } = route.params;
 
@@ -42,6 +40,7 @@ const ScoresViewScreen = ({ navigation, route }) => {
   useEffect(() => {
     if (isFocused) {
       loadData();
+
     }
   }, [isFocused]);
 
@@ -49,20 +48,17 @@ const ScoresViewScreen = ({ navigation, route }) => {
     setCurrentIndex(index);
   }, [index]);
 
-  
+  useEffect(() => {
+    fetchAverageRating();
+    checkHasRated();  
+  }, [currentNeighborhood]);
 
-  const getRatingEmoji = () => {
-    if (rating === 5) { return '😡' }
+  useEffect(() => {
+    console.log('neigh');
+    console.log(neighborhoods);
+  }, [neighborhoods]);
 
-    if (rating === 4) { return '😫' }
-
-    if (rating === 3) { return '😶' }
-
-    if (rating === 2) { return '🙂' }
-
-    if (rating === 1) { return '😁' }
-  }
-  const getRatingImage = () => {
+  const getRatingImage = (rating) => {
     return ratingImages[rating];
   };
 
@@ -70,7 +66,7 @@ const ScoresViewScreen = ({ navigation, route }) => {
     const neighborhoodName = currentNeighborhood;
     const ratingValue = rating;
     const userId = auth.currentUser ? auth.currentUser.uid : null;
-
+    
     if (!userId) {
       console.log('User is not logged in.');
       return;
@@ -95,14 +91,38 @@ const ScoresViewScreen = ({ navigation, route }) => {
       });
 
       console.log('Rating sent to Firestore successfully!');
-      setRating(0); // Optionally reset the rating slider to 0 or any initial value
+      fetchAverageRating();
+      setHasRated(true);
     } catch (error) {
       console.error("Error adding document to Firestore: ", error);
     }
   };
+  const checkHasRated = async () => {
+    const neighborhoodName = currentNeighborhood;
+    const userId = auth.currentUser ? auth.currentUser.uid : null;
 
+    try {
+      // Check if the user has already rated this neighborhood
+      const ratingsRef = collection(db, 'user_ratings');
+      const q = query(ratingsRef, where('neighborhood', '==', neighborhoodName), where('userId', '==', userId));
+
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        setHasRated(true);
+        return;
+      } else {
+        setHasRated(false);
+        return;
+      }
+    } catch (error) {
+      console.error("Error checking if user has rated: ", error);
+      setHasRated(false);
+      return;
+    }
+  }
   const fetchAverageRating = async () => {
     const neighborhoodName = currentNeighborhood;
+    console.log("n: "+ neighborhoodName);
 
     // Ensure there's a valid neighborhood name to search for
     if (!neighborhoodName) {
@@ -126,7 +146,8 @@ const ScoresViewScreen = ({ navigation, route }) => {
       // Check if there are any ratings to avoid division by zero
       if (ratingsCount > 0) {
         const averageRating = totalRatings / ratingsCount;
-        console.log(`Average rating for ${neighborhoodName}: ${averageRating}`);
+        setAvgRating(Math.ceil(averageRating));
+        // console.log(`Average rating for ${neighborhoodName}: ${averageRating}`);
       } else {
         console.log(`No ratings found for ${neighborhoodName}.`);
       }
@@ -144,7 +165,6 @@ const ScoresViewScreen = ({ navigation, route }) => {
       if (storedLocation !== null) {
         const parsedLocation = JSON.parse(storedLocation);
         console.log("Current location retrieved from AsyncStorage:");
-        console.log(parsedLocation);
         setLocation(parsedLocation)
         // console.log(findNeighborhood(location["longitude"], location["latitude"]))
       } else {
@@ -157,6 +177,8 @@ const ScoresViewScreen = ({ navigation, route }) => {
     if (neighborhoodData !== null) {
       const parsedData = JSON.parse(neighborhoodData);
       setCurrentNeighborhood(Object.entries(parsedData)[0][0]);
+      
+      
       // const currentLoc = findNeighborhood(location["longitude"], location["latitude"])
       // if (currentLoc == null) {
       //   const additionalEntry = {
@@ -223,31 +245,40 @@ const ScoresViewScreen = ({ navigation, route }) => {
             </>
           ) : null}
         </View>
+        <>
+          {hasRated ? (
+            <View style={styles.avgRatingContainer}>
+            <Text style={styles.avgUserRatingText}>{"Average\nUser Rating:"}</Text>
+            <Image style={styles.ratingImage} source={getRatingImage(avgRating)} />
+            </View>
+          ) : (
+            
+            <View style={styles.ratingContainer}>
+              <Image style={styles.ratingImage} source={getRatingImage(rating)} />
 
-        <View style={styles.ratingContainer}>
-          <Image style={styles.ratingImage} source={getRatingImage()} />
+              <Slider
+                style={{ width: 200, height: 40 }}
+                minimumValue={1}
+                maximumValue={5}
+                step={1}
+                value={rating}
+                onValueChange={setRating}
+                thumbTintColor='white'
+                minimumTrackTintColor="white"
+              />
+              {
+                rating > 0 && (
+                  <TouchableOpacity
+                    style={styles.submitButton}
+                    onPress={sendRatingToFirestore}
+                  >
+                    <Text style={styles.submitButtonText}>Submit Rating</Text>
+                  </TouchableOpacity>
+                )
+              }
+            </View>)}
+        </>
 
-          <Slider
-            style={{ width: 200, height: 40 }}
-            minimumValue={1}
-            maximumValue={5}
-            step={1}
-            value={rating}
-            onValueChange={setRating}
-            thumbTintColor='white'
-            minimumTrackTintColor="white"
-          />
-          {
-            rating > 0 && (
-              <TouchableOpacity
-                style={styles.submitButton}
-                onPress={sendRatingToFirestore}
-              >
-                <Text style={styles.submitButtonText}>Submit Rating</Text>
-              </TouchableOpacity>
-            )
-          }
-        </View>
 
 
 
@@ -306,6 +337,9 @@ const ScoresViewScreen = ({ navigation, route }) => {
     if (entriesArray.length > 0 && index - 1 < entriesArray.length) {
       const [neighborhood, data] = entriesArray[index];
       setCurrentNeighborhood(neighborhood);
+      fetchAverageRating();
+      checkHasRated()      
+
     }
 
   };
@@ -463,26 +497,37 @@ const styles = StyleSheet.create({
     fontSize: 20,
     textAlign: 'center',
   },
+  avgRatingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '75%',
+    height: '30%',
+    padding: 20,
+    marginBottom: '7%',
+
+  },
   ratingContainer: {
     alignItems: 'center',
+    justifyContent: 'center',
     width: '75%',
+    height: '30%',
     padding: 20,
-    borderWidth: 4, 
-    borderColor: 'white', 
-    borderRadius: 10, 
+    borderWidth: 4,
+    borderColor: 'white',
+    borderRadius: 10,
     marginBottom: '7%',
-    
+
   },
   ratingImage: {
-    width: 50,
-    height: 50,
+    width: 60,
+    height: 60,
     marginBottom: '5%',
   },
   submitButton: {
     padding: 15,
-    borderWidth: 4, 
-    borderColor: 'white', 
-    borderRadius: 10, 
+    borderWidth: 4,
+    borderColor: 'white',
+    borderRadius: 10,
     marginTop: '5%',
 
   },
@@ -490,5 +535,12 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 20,
     fontWeight: 'bold'
+  },
+  avgUserRatingText: {
+    color: 'white',
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: '10%',
+    textAlign: 'center',
   }
 });

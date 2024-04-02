@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { auth } from './firebaseConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getAllNeighborhoods } from './PersonalData';
+import { useIsFocused } from '@react-navigation/native';
 
 import SearchScreen from './SearchScreen';
 import SignUpScreen from './SignUpScreen';
@@ -48,8 +49,9 @@ export default function App() {
 
   const loadData = async (uid) => {
     try {
-      console.log(uid);
       const neighborhoods = await getAllNeighborhoods(uid);
+      console.log(neighborhoods);
+
       await AsyncStorage.setItem('neighborhoods', JSON.stringify(neighborhoods));
     } catch (error) {
       console.error('Error loading data:', error);
@@ -81,7 +83,7 @@ export default function App() {
     };
     }, []);
 
-
+    
   const AuthenticatedStack = createNativeStackNavigator();
   const UnauthenticatedStack = createNativeStackNavigator();
 

@@ -47,6 +47,7 @@ const ScoreScreen = ({ navigation, route }) => {
             console.log('Data saved successfully!');
             loadData();
             navigation.goBack()
+            route.params?.onGoBack(neighborhood);
         } catch (error) {
             console.error('Error saving data:', error);
         }
@@ -64,7 +65,6 @@ const ScoreScreen = ({ navigation, route }) => {
                 console.log('Data deleted successfully!');
                 setNeighborhoods(updatedObject);
                 navigation.goBack()
-
             } else {
                 console.log(`Neighborhood ${neighborhood} not found in data.`);
             }

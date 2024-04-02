@@ -12,12 +12,12 @@ const SearchScreen = ({ navigation }) => {
   const [suggestions, setSuggestions] = useState([]);
   const [neighborhoods, setNeighborhoods] = useState({});
   const [userid, setUserid] = useState(null);
+  const [newAdd, setNewAdd] = useState(null);
 
   const suggestionData = require('./STLNeighborhoods.json').neighborhoods;
   const isFocused = useIsFocused();
 
   useEffect(() => {
-    // Fetch the current user when the component mounts
     const currentUser = auth.currentUser;
     if (currentUser) {
       setUserid(currentUser.uid);
@@ -29,9 +29,20 @@ const SearchScreen = ({ navigation }) => {
   useEffect(() => {
     if (isFocused) {
       console.log("focused");
-      loadData();
+      setTimeout(() => {
+        loadData();
+      }, 1000); 
     }
   }, [isFocused]);
+
+  useEffect(() => {
+    let index = Object.entries(neighborhoods).length
+    console.log("index");
+    if (index != 0) {
+      navigation.navigate('ScoresViewScreen', { name: newAdd, index})
+    }
+
+  }, [newAdd]);
 
   const updateSearch = (text) => {
     setSearch(text);
@@ -45,10 +56,14 @@ const SearchScreen = ({ navigation }) => {
   };
 
   const loadData = async () => {
+    console.log('loading');
     try {
         const data = await AsyncStorage.getItem('neighborhoods');
+        console.log("data:");
+
+        console.log(data);
+
         if (data && data !== "null" && data !== "undefined") {
-            console.log("data: " + data);
             const parsedData = JSON.parse(data);
             setNeighborhoods(parsedData);
             console.log('Data loaded successfully:', parsedData);
@@ -59,7 +74,6 @@ const SearchScreen = ({ navigation }) => {
 };
 
   const deleteNeigh = (neighborhoodName) => {
-    // Confirm deletion
     
     Alert.alert(
       'Confirm Deletion',
@@ -73,13 +87,11 @@ const SearchScreen = ({ navigation }) => {
         {
           text: 'Delete',
           onPress: async () => {
-            // Perform deletion
             const updatedNeighborhoods = { ...neighborhoods };
             delete updatedNeighborhoods[neighborhoodName];
             setNeighborhoods(updatedNeighborhoods);
             await deleteNeighborhood(userid, neighborhoodName);
 
-            // Save updated data to AsyncStorage or any other storage mechanism you're using
             AsyncStorage.setItem('neighborhoods', JSON.stringify(updatedNeighborhoods))
               .then(() => console.log(`${neighborhoodName} deleted successfully`))
               .catch(error => console.error('Error deleting neighborhood:', error));
@@ -91,7 +103,11 @@ const SearchScreen = ({ navigation }) => {
   };
 
   const onPressedSuggestion = (item) => {
-    navigation.navigate('ScoreScreen', { name: item })
+    navigation.navigate('ScoreScreen', { name: item,
+      onGoBack: (data) => {
+        setNewAdd(data);
+      }
+    })
     updateSearch('')
     Keyboard.dismiss()
 

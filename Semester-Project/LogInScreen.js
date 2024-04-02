@@ -4,6 +4,7 @@ import { auth } from './firebaseConfig';
 import { signInWithEmailAndPassword } from "firebase/auth"
 import { Input, Icon } from 'react-native-elements';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getAllNeighborhoods } from './PersonalData';
 
 
 const SignUpScreen = ({ navigation }) => {
