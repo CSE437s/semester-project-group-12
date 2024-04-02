@@ -13,7 +13,6 @@ import { findNeighborhood } from './getUserNeighborhood';
 import { countDocumentsByNeighborhood } from './GetScore'
 import * as Location from 'expo-location';
 
-
 const ratingImages = {
   5: require('./assets/Rating Emojis/Happy.png'),
   4: require('./assets/Rating Emojis/Smile.png'),
@@ -32,7 +31,7 @@ const ScoresViewScreen = ({ navigation, route }) => {
   const [location, setLocation] = useState(null);
   const [rating, setRating] = useState(3);
   const [hasRated, setHasRated] = useState(false);
-  const [avgRating, setAvgRating] = useState(1);
+  const [avgRating, setAvgRating] = useState(3);
 
   const { index } = route.params;
 
@@ -40,7 +39,6 @@ const ScoresViewScreen = ({ navigation, route }) => {
   useEffect(() => {
     if (isFocused) {
       loadData();
-
     }
   }, [isFocused]);
 
