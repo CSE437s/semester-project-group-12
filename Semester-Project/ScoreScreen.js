@@ -5,6 +5,8 @@ import countDocumentsByNeighborhood from './GetScore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { addNeighborhood, deleteNeighborhood } from './PersonalData';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
+import {neighborhoodMapping as neighborhoodMappingSTL } from './stldata';
+import {neighborhoodMapping as neighborhoodMappingChicago } from './chicagoData';
 
 const ScoreScreen = ({ navigation, route }) => {
     const [count, setCount] = useState(null);
@@ -26,9 +28,12 @@ const ScoreScreen = ({ navigation, route }) => {
         return () => unsubscribe();
     }, []);
     useEffect(() => {
-        countDocumentsByNeighborhood(neighborhood)
+
+        const city = Object.keys(neighborhoodMappingChicago).includes(neighborhood) ? 'Chicago' : 'STL';
+
+        countDocumentsByNeighborhood(neighborhood, city)
             .then(([fetchedCount, fetchedRatio]) => {
-                console.log(`The crime index is ${fetchedCount} for that neighborhood.`);
+                console.log(`The crime index is ${fetchedCount} for ${neighborhood} neighborhood.`);
                 setCount(fetchedCount); // Update the count state with the fetched value
                 setRatio(fetchedRatio);
             })
