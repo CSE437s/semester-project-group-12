@@ -4,6 +4,21 @@ import { auth } from './firebaseConfig';
 import { signInWithEmailAndPassword } from "firebase/auth"
 import { Input, Icon } from 'react-native-elements';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  GoogleOneTapSignIn,
+  statusCodes,
+} from '@react-native-google-signin/google-signin';
+
+const config = {
+  webClientId: '558662647206-ec4s269un57gruo481uiv0mk18rgua7u.apps.googleusercontent.com',
+  iosClientId: '558662647206-ec4s269un57gruo481uiv0mk18rgua7u.apps.googleusercontent.com',
+};
+
+// Initialize Google Sign-In
+GoogleOneTapSignIn.configure({
+  webClientId: config.webClientId,
+  iosClientId: config.iosClientId,
+});
 
 
 const SignUpScreen = ({ navigation }) => {
@@ -45,7 +60,6 @@ const SignUpScreen = ({ navigation }) => {
           break;
       }
     }
-    
 
   };
   useEffect(() => {
@@ -56,8 +70,28 @@ const SignUpScreen = ({ navigation }) => {
       return () => clearTimeout(timer);
     }
   }, [modalVisible]);
+
+  const signInWithGoogle = async () => {
+    try {
+      await GoogleOneTapSignIn.hasPlayServices();
+      const userInfo = await GoogleOneTapSignIn.signIn();
+      console.log(userInfo);
+      // Handle the successful login here (e.g., navigate to another screen)
+    } catch (error) {
+      console.error(error);
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        // Handle sign-in cancelled by the user
+      } else {
+        // Handle other errors
+      }
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
+
+    <Button title="Sign In with Google" onPress={signInWithGoogle} />
+
       <Modal
         animationType="slide"
         transparent={true}
