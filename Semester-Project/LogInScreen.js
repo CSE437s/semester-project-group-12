@@ -56,6 +56,7 @@ const SignUpScreen = ({ navigation }) => {
     }
   }, [modalVisible]);
 
+  /*
   const signInWithGoogle = async () => {
     try {
       await GoogleOneTapSignIn.hasPlayServices();
@@ -70,13 +71,13 @@ const SignUpScreen = ({ navigation }) => {
         // Handle other errors
       }
     }
-  };
 
+  };
+  */
+//<Button title="Sign In with Google" onPress={signInWithGoogle} />
   return (
     <SafeAreaView style={styles.container}>
-
-    <Button title="Sign In with Google" onPress={signInWithGoogle} />
-
+      
       <Modal
         animationType="slide"
         transparent={true}

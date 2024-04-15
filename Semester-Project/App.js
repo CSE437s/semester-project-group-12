@@ -15,7 +15,6 @@ import ScoresViewScreen from './ScoresViewScreen';
 import MapScreen from './MapScreen';
 
 import * as Location from 'expo-location';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -206,6 +205,11 @@ const styles = StyleSheet.create({
   },
 });
 
-//GoogleSignin.configure({
-//  webClientId: '558662647206-ec4s269un57gruo481uiv0mk18rgua7u.apps.googleusercontent.com',
-//});
+/*
+      "bundleIdentifier": "com.companyname.appname",
+  "config": {
+    "googleSignIn": {
+      "reservedClientId": "558662647206-ec4s269un57gruo481uiv0mk18rgua7u.apps.googleusercontent.com"
+    }
+  }
+     */
