@@ -1,6 +1,8 @@
 import { collection, getDocs, where, query } from "firebase/firestore";
 import { db } from "./firebaseConfig";
-import { neighborhoodPopulation, neighborhoodMapping } from './stldata';
+import { neighborhoodPopulation as neighborhoodPopulationSTL, neighborhoodMapping as neighborhoodMappingSTL } from './stldata';
+import { neighborhoodPopulation as neighborhoodPopulationChicago, neighborhoodMapping as neighborhoodMappingChicago } from './chicagoData';
+
 
 function zscoreToPercentile(z) {
   // Error function approximation
@@ -33,39 +35,67 @@ function zscoreToPercentile(z) {
   return percentile;
 }
 
-async function countDocumentsByNeighborhood(neighborhood) {
-  const nationalAverage = 1620;
-  const stlCrimeCollection = collection(db, 'stl_crime_counts');
-  const neighborhoodNumber = neighborhoodMapping[neighborhood];
-  const neighborhoodPop = neighborhoodPopulation[neighborhood];
+async function countDocumentsByNeighborhood(neighborhood, location = 'STL') {
+    let crimeCollectionName, neighborhoodMapping, neighborhoodPopulation, queryField;
 
-
-  const q = query(stlCrimeCollection, where('neighborhood', '==', String(neighborhoodNumber)));
-
-  try {
-    const querySnapshot = await getDocs(q);
-    const documentData = querySnapshot.docs[0].data()
-    console.log(documentData)
-    console.log(`Found ${documentData.count} documents with neighborhood ${neighborhoodNumber}.`);
-
-    let score = Math.round(zscoreToPercentile(((documentData.count * 1000 / neighborhoodPop) - 139.40134) / 314.7333));
-
-    const stl = (documentData.count / neighborhoodPop) * (100000 / 3)
-
-    let ratio = stl / 2324;
-    if (ratio > 1) {
-      ratio = -(ratio - 1) * 100;
+    if (location === 'STL') {
+        crimeCollectionName = 'stl_crime_counts';
+        neighborhoodMapping = neighborhoodMappingSTL;
+        neighborhoodPopulation = neighborhoodPopulationSTL;
+        queryField = 'neighborhood'; // Query field for STL
+    } else if (location === 'Chicago') {
+        crimeCollectionName = 'chicago_crime_counts';
+        neighborhoodMapping = neighborhoodMappingChicago;
+        neighborhoodPopulation = neighborhoodPopulationChicago;
+        queryField = 'communityArea'; // Query field for Chicago
     } else {
-      ratio = (1 - ratio) * 100;
+        throw new Error("Invalid location specified");
     }
-    console.log("Ratio: " + ratio);
 
-    return [score, ratio];
+    const nationalAverage = 1620; // Assuming this remains constant across locations
+    const crimeCollection = collection(db, crimeCollectionName);
+    const neighborhoodNumber = neighborhoodMapping[neighborhood];
+    const neighborhoodPop = neighborhoodPopulation[neighborhood];
 
-  } catch (error) {
-    console.error("Error executing query: ", error);
-    throw error;
-  }
+    const q = query(crimeCollection, where(queryField, '==', String(neighborhoodNumber)));
+
+    try {
+        const querySnapshot = await getDocs(q);
+        if (querySnapshot.docs.length > 0) {
+            const documentData = querySnapshot.docs[0].data();
+            console.log(`Found ${documentData.count} documents with ${queryField} ${neighborhoodNumber}.`);
+            let score;
+            if (location === 'STL') {
+                score = Math.
+                round(zscoreToPercentile(((documentData.count * 1000 / neighborhoodPop) - 139.40134) / 314.7333));
+            }
+            else {
+                score = Math.round(zscoreToPercentile(((documentData.count * 1000 / neighborhoodPop) - 584.415584) / 464.6418));
+            }
+            const ratio = calculateCrimeRatio(documentData.count, neighborhoodPop);
+
+            console.log("Ratio: " + ratio);
+
+            return [score, ratio];
+        } else {
+            console.log(`No documents found for the specified ${queryField}.`);
+            return [0, 0];
+        }
+    } catch (error) {
+        console.error("Error executing query: ", error);
+        throw error;
+    }
+}
+
+function calculateCrimeRatio(crimeCount, neighborhoodPop) {
+    const ratioValue = (crimeCount / neighborhoodPop) * (100000 / 3);
+    let ratio = ratioValue / 2324;
+    if (ratio > 1) {
+        ratio = -(ratio - 1) * 100;
+    } else {
+        ratio = (1 - ratio) * 100;
+    }
+    return ratio;
 }
 // Call the function
 export default countDocumentsByNeighborhood;
