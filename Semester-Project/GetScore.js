@@ -70,7 +70,10 @@ async function countDocumentsByNeighborhood(neighborhood, location = 'STL') {
                 round(zscoreToPercentile(((documentData.count * 1000 / neighborhoodPop) - 139.40134) / 314.7333));
             }
             else {
-                score = Math.round(zscoreToPercentile(((documentData.count * 1000 / neighborhoodPop) - 584.415584) / 464.6418));
+                score = Math.round(zscoreToPercentile(((documentData.count * 1000 / neighborhoodPop) - 10) / 10));
+                console.log(documentData.count)
+                console.log(neighborhoodPop)
+                console.log(score)
             }
             const ratio = calculateCrimeRatio(documentData.count, neighborhoodPop);
 
