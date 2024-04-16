@@ -30,7 +30,7 @@ const ScoresViewScreen = ({ navigation, route }) => {
   const isFocused = useIsFocused();
   const [location, setLocation] = useState(null);
   const [rating, setRating] = useState(3);
-  const [hasRated, setHasRated] = useState(false);
+  const [hasRated, setHasRated] = useState([]);
   const [avgRating, setAvgRating] = useState(3);
 
   const { index } = route.params;
@@ -48,13 +48,7 @@ const ScoresViewScreen = ({ navigation, route }) => {
 
   useEffect(() => {
     fetchAverageRating();
-    checkHasRated();  
   }, [currentNeighborhood]);
-
-  useEffect(() => {
-    console.log('neigh');
-    console.log(neighborhoods);
-  }, [neighborhoods]);
 
   const getRatingImage = (rating) => {
     return ratingImages[rating];
@@ -64,7 +58,7 @@ const ScoresViewScreen = ({ navigation, route }) => {
     const neighborhoodName = currentNeighborhood;
     const ratingValue = rating;
     const userId = auth.currentUser ? auth.currentUser.uid : null;
-    
+
     if (!userId) {
       console.log('User is not logged in.');
       return;
@@ -90,15 +84,17 @@ const ScoresViewScreen = ({ navigation, route }) => {
 
       console.log('Rating sent to Firestore successfully!');
       fetchAverageRating();
-      setHasRated(true);
+      setHasRated(prevHasRated => {
+        const newHasRated = [...prevHasRated]; 
+        newHasRated[currentIndex] = true; 
+        return newHasRated;
+      });
     } catch (error) {
       console.error("Error adding document to Firestore: ", error);
     }
   };
-  const checkHasRated = async () => {
-    const neighborhoodName = currentNeighborhood;
+  const checkHasRated = async (neighborhoodName) => {
     const userId = auth.currentUser ? auth.currentUser.uid : null;
-
     try {
       // Check if the user has already rated this neighborhood
       const ratingsRef = collection(db, 'user_ratings');
@@ -106,21 +102,17 @@ const ScoresViewScreen = ({ navigation, route }) => {
 
       const querySnapshot = await getDocs(q);
       if (!querySnapshot.empty) {
-        setHasRated(true);
-        return;
+        return true;
       } else {
-        setHasRated(false);
-        return;
+        return false;
       }
     } catch (error) {
       console.error("Error checking if user has rated: ", error);
-      setHasRated(false);
-      return;
+      return false;
     }
   }
   const fetchAverageRating = async () => {
     const neighborhoodName = currentNeighborhood;
-    console.log("n: "+ neighborhoodName);
 
     // Ensure there's a valid neighborhood name to search for
     if (!neighborhoodName) {
@@ -144,8 +136,7 @@ const ScoresViewScreen = ({ navigation, route }) => {
       // Check if there are any ratings to avoid division by zero
       if (ratingsCount > 0) {
         const averageRating = totalRatings / ratingsCount;
-        setAvgRating(Math.ceil(averageRating));
-        // console.log(`Average rating for ${neighborhoodName}: ${averageRating}`);
+        setAvgRating(averageRating * 20);
       } else {
         console.log(`No ratings found for ${neighborhoodName}.`);
       }
@@ -164,7 +155,6 @@ const ScoresViewScreen = ({ navigation, route }) => {
         const parsedLocation = JSON.parse(storedLocation);
         console.log("Current location retrieved from AsyncStorage:");
         setLocation(parsedLocation)
-        // console.log(findNeighborhood(location["longitude"], location["latitude"]))
       } else {
         console.log("No current location found in AsyncStorage.");
       }
@@ -175,8 +165,8 @@ const ScoresViewScreen = ({ navigation, route }) => {
     if (neighborhoodData !== null) {
       const parsedData = JSON.parse(neighborhoodData);
       setCurrentNeighborhood(Object.entries(parsedData)[0][0]);
-      
-      
+
+
       // const currentLoc = findNeighborhood(location["longitude"], location["latitude"])
       // if (currentLoc == null) {
       //   const additionalEntry = {
@@ -196,6 +186,13 @@ const ScoresViewScreen = ({ navigation, route }) => {
       setNeighborhoods(parsedData);
       setNumOfScreens(Object.keys(parsedData).length);
       setCurrentIndex(index);
+
+      const entriesArray = Object.entries(parsedData);
+      const resultsArray = await Promise.all(entriesArray.map(async ([key]) => {
+        return await checkHasRated(key);
+      }));
+      setHasRated(resultsArray);
+
     }
 
   };
@@ -238,19 +235,18 @@ const ScoresViewScreen = ({ navigation, route }) => {
         <View style={styles.scoreComparisonContainer}>
           {ratio !== null && ratio !== undefined ? (
             <>
-              {/* <FontAwesomeIcon name={ratio > 0 ? "caret-up" : "caret-down"} size={30} color="white" /> */}
               <Text style={styles.scoreComparisonText}>{ratio > 0 ? ratio.toFixed(2) + "% more safe \n compared to the \n national average" : -ratio.toFixed(2) + "% more dangerous \n compared to the \n national average"}</Text>
             </>
           ) : null}
         </View>
         <>
-          {hasRated ? (
+          {hasRated[currentIndex] ? (
             <View style={styles.avgRatingContainer}>
-            <Text style={styles.avgUserRatingText}>{"Average\nUser Rating:"}</Text>
-            <Image style={styles.ratingImage} source={getRatingImage(avgRating)} />
+              <Text style={styles.avgUserRatingText}>{"Average\nUser Rating:"}</Text>
+              <Text style={styles.avgUserRatingText}>{120 - avgRating}</Text>
             </View>
           ) : (
-            
+
             <View style={styles.ratingContainer}>
               <Image style={styles.ratingImage} source={getRatingImage(rating)} />
 
@@ -319,7 +315,7 @@ const ScoresViewScreen = ({ navigation, route }) => {
     const entriesArray = Object.entries(neighborhoods);
     const [neighborhood, data] = entriesArray[index];
     return {
-      key: neighborhood, // Add unique key
+      key: neighborhood,
       component: generateScreen(neighborhood, data),
     };
   });
@@ -336,7 +332,6 @@ const ScoresViewScreen = ({ navigation, route }) => {
       const [neighborhood, data] = entriesArray[index];
       setCurrentNeighborhood(neighborhood);
       fetchAverageRating();
-      checkHasRated()      
 
     }
 
