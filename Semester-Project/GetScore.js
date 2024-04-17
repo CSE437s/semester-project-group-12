@@ -67,10 +67,10 @@ async function countDocumentsByNeighborhood(neighborhood, location = 'STL') {
             let score;
             if (location === 'STL') {
                 score = Math.
-                round(zscoreToPercentile(((documentData.count * 1000 / neighborhoodPop) - 139.40134) / 314.7333));
+                round(zscoreToPercentile(((documentData.count / neighborhoodPop) - (139.40134 / 3388)) / (314.7333 / 3388)));
             }
             else {
-                score = Math.round(zscoreToPercentile(((documentData.count * 1000 / neighborhoodPop) - 10) / 10));
+                score = Math.round(zscoreToPercentile(((documentData.count / neighborhoodPop) - (584.415584 / 35667)) / (464.6418 / 35667)));
                 console.log(documentData.count)
                 console.log(neighborhoodPop)
                 console.log(score)

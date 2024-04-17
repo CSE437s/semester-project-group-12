@@ -21,8 +21,8 @@ const MapScreen = ({ navigation }) => {
     const getMarkerColor = (score) => {
         if (score === undefined) return 'white';
         const scoreNum = Number(score);
-        if (scoreNum > 70) return 'red';
-        if (scoreNum > 40) return 'yellow';
+        if (scoreNum > 80) return 'red';
+        if (scoreNum > 50) return 'yellow';
         return 'green';
     };
 
