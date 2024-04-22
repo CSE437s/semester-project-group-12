@@ -153,7 +153,7 @@ const SearchScreen = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       <SearchBar
-        placeholder="Search for a STL neighborhood"
+        placeholder="Search for a neighborhood"
         clearIcon
         onChangeText={updateSearch}
         containerStyle={styles.searchContainer}

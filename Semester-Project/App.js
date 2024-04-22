@@ -5,7 +5,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { auth } from './firebaseConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getAllNeighborhoods } from './PersonalData';
-import { useIsFocused } from '@react-navigation/native';
+import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
+
 
 import SearchScreen from './SearchScreen';
 import SignUpScreen from './SignUpScreen';
@@ -127,7 +128,7 @@ export default function App() {
               title: 'Neighborhood Search',
               headerRight: () => (
                 <TouchableOpacity onPress={logOut}>
-                  <Text style={{ color: 'white', fontWeight: 'bold' }}>Log Out</Text>
+                  <FontAwesomeIcon name="sign-out" size={25} color="white" />
                 </TouchableOpacity>
               ),
               animation: 'fade',
@@ -205,11 +206,3 @@ const styles = StyleSheet.create({
   },
 });
 
-/*
-      "bundleIdentifier": "com.companyname.appname",
-  "config": {
-    "googleSignIn": {
-      "reservedClientId": "558662647206-ec4s269un57gruo481uiv0mk18rgua7u.apps.googleusercontent.com"
-    }
-  }
-     */

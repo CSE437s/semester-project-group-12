@@ -165,7 +165,6 @@ const ScoresViewScreen = ({ navigation, route }) => {
     const neighborhoodData = await AsyncStorage.getItem('neighborhoods');
     if (neighborhoodData !== null) {
       const parsedData = JSON.parse(neighborhoodData);
-      // setCurrentNeighborhood(Object.entries(parsedData)[0][0]);
 
 
       // const currentLoc = findNeighborhood(location["longitude"], location["latitude"])
@@ -228,7 +227,7 @@ const ScoresViewScreen = ({ navigation, route }) => {
     const ratio = data.ratio;
 
     return () => (
-      <SafeAreaView style={[styles.container, { backgroundColor: getBackgroundColor(count)?.backgroundColor }]}>
+      <SafeAreaView style={[styles.screen, { backgroundColor: getBackgroundColor(count)?.backgroundColor }]}>
         <Text style={[styles.centeredText, styles.titleStyle]}>{neighborhood}</Text>
         <View style={[styles.borderBox, { backgroundColor: getBackgroundColor(count)?.backgroundColor }]}>
           <Text style={[styles.centeredText, styles.scoreStyle]}>{count !== null ? count : 'Loading...'}</Text>
@@ -421,6 +420,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   innerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  screen: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
