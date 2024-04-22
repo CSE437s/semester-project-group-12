@@ -165,7 +165,7 @@ const ScoresViewScreen = ({ navigation, route }) => {
     const neighborhoodData = await AsyncStorage.getItem('neighborhoods');
     if (neighborhoodData !== null) {
       const parsedData = JSON.parse(neighborhoodData);
-      setCurrentNeighborhood(Object.entries(parsedData)[0][0]);
+      // setCurrentNeighborhood(Object.entries(parsedData)[0][0]);
 
 
       // const currentLoc = findNeighborhood(location["longitude"], location["latitude"])
