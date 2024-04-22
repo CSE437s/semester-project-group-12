@@ -8,7 +8,10 @@ import { db, auth } from './firebaseConfig';
 import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
 
 import neighborhoodsData from './neighborhoods.json';
-import { neighborhoodMapping } from './stldata';
+import chicagoNeighborhoodsData from './chicagoCoordinates.json';
+
+import { neighborhoodMapping as neighborhoodMappingSTL } from './stldata';
+import { neighborhoodMapping as neighborhoodMappingChicago } from './chicagoData';
 import { findNeighborhood } from './getUserNeighborhood';
 import { countDocumentsByNeighborhood } from './GetScore'
 import * as Location from 'expo-location';
@@ -85,8 +88,8 @@ const ScoresViewScreen = ({ navigation, route }) => {
       console.log('Rating sent to Firestore successfully!');
       fetchAverageRating();
       setHasRated(prevHasRated => {
-        const newHasRated = [...prevHasRated]; 
-        newHasRated[currentIndex] = true; 
+        const newHasRated = [...prevHasRated];
+        newHasRated[currentIndex] = true;
         return newHasRated;
       });
     } catch (error) {
@@ -137,8 +140,6 @@ const ScoresViewScreen = ({ navigation, route }) => {
       if (ratingsCount > 0) {
         const averageRating = totalRatings / ratingsCount;
         setAvgRating(averageRating * 20);
-      } else {
-        console.log(`No ratings found for ${neighborhoodName}.`);
       }
     } catch (error) {
       console.error("Error fetching ratings from Firestore: ", error);
@@ -367,13 +368,28 @@ const ScoresViewScreen = ({ navigation, route }) => {
         <TouchableOpacity
           style={styles.bottomBarButton}
           onPress={() => {
-            console.log("Current Neighborhood: " + currentNeighborhood)
+            let mappingNum;
+            let feature;
 
-            const feature = neighborhoodsData.features.find(f => f.properties.NHD_NUM === neighborhoodMapping[currentNeighborhood]);
+            console.log(currentNeighborhood);
+            if (neighborhoodMappingSTL.hasOwnProperty(currentNeighborhood)) {
+              mappingNum = neighborhoodMappingSTL[currentNeighborhood];
+              feature = neighborhoodsData.features.find(f => f.properties.NHD_NUM === mappingNum);
+            } else if (neighborhoodMappingChicago.hasOwnProperty(currentNeighborhood)) {
+              mappingNum = neighborhoodMappingChicago[currentNeighborhood];
+              feature = chicagoNeighborhoodsData.features.find(f => {
+                return Number(f.properties.area_numbe) === mappingNum;
+              });
+            }
+
+
+
             if (!feature) {
               navigation.navigate('MapScreen', { long: -90.236402, lat: 38.627003 });
             } else {
-              const outerBoundary = feature.geometry.coordinates[0];
+              const outerBoundary = (feature.geometry.type === "MultiPolygon")
+              ? feature.geometry.coordinates[0][0] 
+              : feature.geometry.coordinates[0];              
               const centroid = calculateCentroid(outerBoundary);
               navigation.navigate('MapScreen', { long: centroid[0], lat: centroid[1] });
             };
