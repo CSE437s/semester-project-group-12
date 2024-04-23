@@ -6,6 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
 import { deleteNeighborhood } from './PersonalData';
 import { auth } from './firebaseConfig';
+import { neighborhoodMapping as neighborhoodMappingChicago } from './chicagoData';
 
 import * as Location from 'expo-location';
 
@@ -55,7 +56,7 @@ const SearchScreen = ({ navigation }) => {
   }, [isFocused]);
 
   useEffect(() => {
-    let index = Object.entries(neighborhoods).length
+    let index = Object.entries(neighborhoods).length+1
     if (index != 0) {
       navigation.navigate('ScoresViewScreen', { name: newAdd, index })
     }
@@ -159,6 +160,7 @@ const SearchScreen = ({ navigation }) => {
         >
           <View style={styles.tabContent}>
             <Text style={styles.tabText}>{item.neighborhood}</Text>
+            <Text style={styles.tabCity}>{Object.keys(neighborhoodMappingChicago).includes(item.neighborhood) ? 'Chicago' : 'St. Louis'}</Text>
             <Text style={styles.tabCount}>{item.count}</Text>
           </View>
         </TouchableOpacity>
@@ -194,11 +196,11 @@ const SearchScreen = ({ navigation }) => {
       {suggestions.length === 0 && search === '' && (
         <FlatList
           data={[
-            { specialItem: true }, 
+            { currentLocation: true }, 
             ...Object.entries(neighborhoods).map(([neighborhood, { count }]) => ({ neighborhood, count }))
           ]}
           renderItem={renderNeighborhoodTab}
-          keyExtractor={(item, index) => item.specialItem ? 'special' : item.neighborhood + index}
+          keyExtractor={(item, index) => item.currentLocation ? 'currentLocation' : item.neighborhood + index}
         />
       )}
       <FlatList
@@ -263,6 +265,14 @@ const styles = StyleSheet.create({
   tabText: {
     color: '#fff',
     fontSize: 25,
+    marginBottom: 10
+   
+  },
+  tabCity: {
+    color: '#fff',
+    fontSize: 15,
+    position: 'absolute',
+    bottom: -5,
   },
   tabCount: {
     color: '#fff',

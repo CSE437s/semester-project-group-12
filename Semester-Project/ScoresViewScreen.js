@@ -244,6 +244,8 @@ const ScoresViewScreen = ({ navigation, route }) => {
         {count != null ? (
           <SafeAreaView style={[styles.screen, { backgroundColor: getBackgroundColor(count)?.backgroundColor }]}>
             <Text style={[styles.centeredText, styles.titleStyle]}>{neighborhood}</Text>
+            <Text style={[styles.centeredText, styles.cityStyle]}>{Object.keys(neighborhoodMappingChicago).includes(neighborhood) ? 'Chicago' : 'St. Louis'}</Text>
+            
             <View style={[styles.borderBox, { backgroundColor: getBackgroundColor(count)?.backgroundColor }]}>
               <Text style={[styles.centeredText, styles.scoreStyle]}>{count !== null ? count : 'Loading...'}</Text>
             </View>
@@ -449,8 +451,13 @@ const styles = StyleSheet.create({
   titleStyle: {
     color: "#fff",
     fontSize: 30,
-    marginBottom: 20,
+    marginBottom: 0,
     marginTop: -50
+  },
+  cityStyle: {
+    color: "#fff",
+    fontSize: 20,
+    marginBottom: 15,
   },
   scoreStyle: {
     color: "#fff",

@@ -124,6 +124,8 @@ const ScoreScreen = ({ navigation, route }) => {
 
             <View style={styles.innerContainer}>
                 <Text style={[styles.centeredText, styles.titleStyle]}>{neighborhood}</Text>
+                <Text style={[styles.centeredText, styles.cityStyle]}>{Object.keys(neighborhoodMappingChicago).includes(neighborhood) ? 'Chicago' : 'St. Louis'}</Text>
+
                 <View style={[styles.borderBox, { backgroundColor: getBackgroundColor()?.backgroundColor }]}>
                     {/* Dynamically display the count value */}
                     <Text style={[styles.centeredText, styles.scoreStyle]}>{count !== null ? count : 'Loading...'}</Text>
@@ -168,8 +170,12 @@ const styles = StyleSheet.create({
     titleStyle: {
         color: "#fff",
         fontSize: 30,
-        marginBottom: 25,
         marginTop: 70
+    },
+    cityStyle: {
+        color: "#fff",
+        fontSize: 20,
+        marginBottom: 15,
     },
     scoreStyle: {
         color: "#fff",
