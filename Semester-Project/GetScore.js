@@ -91,7 +91,7 @@ async function countDocumentsByNeighborhood(neighborhood, location = 'STL') {
 }
 
 function calculateCrimeRatio(crimeCount, neighborhoodPop) {
-    const ratioValue = (crimeCount / neighborhoodPop) * (100000 / 3);
+    const ratioValue = (crimeCount / neighborhoodPop) * (100000);
     let ratio = ratioValue / 2324;
     if (ratio > 1) {
         ratio = -(ratio - 1) * 100;
