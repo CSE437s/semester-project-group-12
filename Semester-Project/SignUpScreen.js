@@ -26,7 +26,7 @@ const SignUpScreen = ({ navigation }) => {
         await auth.currentUser.reload();
         userVerified = auth.currentUser.emailVerified;
         if (!userVerified) {
-          await new Promise(resolve => setTimeout(resolve, 3)); // Wait for 3 seconds before checking again
+          await new Promise(resolve => setTimeout(resolve, 3000)); 
         }
       }
     } catch (error) {
@@ -41,10 +41,10 @@ const SignUpScreen = ({ navigation }) => {
           setErrorText("Password is too weak.");
           setModalVisible(true);
           break;
-        default:
-          setErrorText("Error: " + errorMessage);
-          setModalVisible(true);          
-          break;
+        // default:
+        //   setErrorText("Error: " + errorMessage);
+        //   setModalVisible(true);          
+        //   break;
       }
     }
   };
