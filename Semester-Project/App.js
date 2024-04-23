@@ -23,10 +23,8 @@ export default function App() {
   const [uidLoaded, setUidLoaded] = useState(false);
   const [emailVerified, setEmailVerified] = useState(false);
 
-  // const [location, setLocation] = useState();
-
-
   useEffect(() => {
+    console.log("loaded");
     const getPermissions = async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
@@ -35,7 +33,6 @@ export default function App() {
       }
 
       let currentLocation = await Location.getCurrentPositionAsync({});
-      // setLocation(currentLocation);
 
       // Store current location in AsyncStorage
       await AsyncStorage.setItem('currentLocation', JSON.stringify({
@@ -46,6 +43,7 @@ export default function App() {
     };
     getPermissions();
   }, []);
+
 
 
   const loadData = async (uid) => {

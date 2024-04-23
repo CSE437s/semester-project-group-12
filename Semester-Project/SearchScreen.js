@@ -6,6 +6,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
 import { deleteNeighborhood } from './PersonalData';
 import { auth } from './firebaseConfig';
+import { neighborhoodMapping as neighborhoodMappingChicago } from './chicagoData';
+
+import * as Location from 'expo-location';
+
 
 const SearchScreen = ({ navigation }) => {
   const [search, setSearch] = useState('');
@@ -24,22 +28,37 @@ const SearchScreen = ({ navigation }) => {
     } else {
       setUserid(null);
     }
-}, []);
+  }, []);
 
   useEffect(() => {
+    const getPermissions = async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        console.log("Please grant location permissions");
+        return;
+      }
+
+      let currentLocation = await Location.getCurrentPositionAsync({});
+
+      await AsyncStorage.setItem('currentLocation', JSON.stringify({
+        latitude: currentLocation.coords.latitude,
+        longitude: currentLocation.coords.longitude
+      }));
+      console.log("Current location stored in AsyncStorage.");
+    };
     if (isFocused) {
-      console.log("focused");
       setTimeout(() => {
+        console.log("loading");
         loadData();
-      }, 1000); 
+        getPermissions();
+      }, 1000);
     }
   }, [isFocused]);
 
   useEffect(() => {
-    let index = Object.entries(neighborhoods).length
-    console.log("index");
+    let index = Object.entries(neighborhoods).length+1
     if (index != 0) {
-      navigation.navigate('ScoresViewScreen', { name: newAdd, index})
+      navigation.navigate('ScoresViewScreen', { name: newAdd, index })
     }
 
   }, [newAdd]);
@@ -56,25 +75,21 @@ const SearchScreen = ({ navigation }) => {
   };
 
   const loadData = async () => {
-    console.log('loading');
     try {
-        const data = await AsyncStorage.getItem('neighborhoods');
-        console.log("data:");
+      const data = await AsyncStorage.getItem('neighborhoods');
 
-        console.log(data);
-
-        if (data && data !== "null" && data !== "undefined") {
-            const parsedData = JSON.parse(data);
-            setNeighborhoods(parsedData);
-            console.log('Data loaded successfully:', parsedData);
-        }
+      if (data && data !== "null" && data !== "undefined") {
+        const parsedData = JSON.parse(data);
+        setNeighborhoods(parsedData);
+        console.log('Data loaded successfully:', parsedData);
+      }
     } catch (error) {
-        console.error('Error loading data:', error);
+      console.error('Error loading data:', error);
     }
-};
+  };
 
   const deleteNeigh = (neighborhoodName) => {
-    
+
     Alert.alert(
       'Confirm Deletion',
       `Are you sure you want to delete ${neighborhoodName}?`,
@@ -103,7 +118,8 @@ const SearchScreen = ({ navigation }) => {
   };
 
   const onPressedSuggestion = (item) => {
-    navigation.navigate('ScoreScreen', { name: item,
+    navigation.navigate('ScoreScreen', {
+      name: item,
       onGoBack: (data) => {
         setNewAdd(data);
       }
@@ -114,7 +130,7 @@ const SearchScreen = ({ navigation }) => {
   }
 
   const onPressedTab = (item, index) => {
-    navigation.navigate('ScoresViewScreen', { name: item.neighborhood, index})
+    navigation.navigate('ScoresViewScreen', { name: item.neighborhood, index })
   }
 
   const renderSuggestion = ({ item }) => (
@@ -123,18 +139,34 @@ const SearchScreen = ({ navigation }) => {
     </TouchableOpacity>
   );
 
-  const renderNeighborhoodTab = ({ item, index }) => (
-    <TouchableOpacity
-      onPress={() => onPressedTab(item, index)}
-      onLongPress={() => deleteNeigh(item.neighborhood)} // Long press to delete
-      style={[styles.neighborhoodTab, { backgroundColor: getBackgroundColor(item.count) }]}
-    >
-      <View style={styles.tabContent}>
-        <Text style={styles.tabText}>{item.neighborhood}</Text>
-        <Text style={styles.tabCount}>{item.count}</Text>
-      </View>
-    </TouchableOpacity>
-  );
+  const renderNeighborhoodTab = ({ item, index }) => {
+    if (index === 0) { 
+      return (
+        <TouchableOpacity
+          onPress={() => onPressedTab(item, index)} 
+          style={[styles.neighborhoodTab, { backgroundColor: "grey"}]}
+        >
+          <View style={styles.currentLocationTab}>
+            <Text style={styles.tabText}>Current Location</Text>
+          </View>
+        </TouchableOpacity>
+      );
+    } else {
+      return (
+        <TouchableOpacity
+          onPress={() => onPressedTab(item, index)}
+          onLongPress={() => deleteNeigh(item.neighborhood)} 
+          style={[styles.neighborhoodTab, { backgroundColor: getBackgroundColor(item.count) }]}
+        >
+          <View style={styles.tabContent}>
+            <Text style={styles.tabText}>{item.neighborhood}</Text>
+            <Text style={styles.tabCity}>{Object.keys(neighborhoodMappingChicago).includes(item.neighborhood) ? 'Chicago' : 'St. Louis'}</Text>
+            <Text style={styles.tabCount}>{item.count}</Text>
+          </View>
+        </TouchableOpacity>
+      );
+    }
+  };
 
   const getBackgroundColor = (count) => {
     if (count !== null) {
@@ -163,9 +195,12 @@ const SearchScreen = ({ navigation }) => {
       />
       {suggestions.length === 0 && search === '' && (
         <FlatList
-          data={Object.entries(neighborhoods).map(([neighborhood, { count }]) => ({ neighborhood, count }))}
+          data={[
+            { currentLocation: true }, 
+            ...Object.entries(neighborhoods).map(([neighborhood, { count }]) => ({ neighborhood, count }))
+          ]}
           renderItem={renderNeighborhoodTab}
-          keyExtractor={(item) => item.neighborhood}
+          keyExtractor={(item, index) => item.currentLocation ? 'currentLocation' : item.neighborhood + index}
         />
       )}
       <FlatList
@@ -230,6 +265,14 @@ const styles = StyleSheet.create({
   tabText: {
     color: '#fff',
     fontSize: 25,
+    marginBottom: 10
+   
+  },
+  tabCity: {
+    color: '#fff',
+    fontSize: 15,
+    position: 'absolute',
+    bottom: -5,
   },
   tabCount: {
     color: '#fff',
