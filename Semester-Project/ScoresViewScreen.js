@@ -6,6 +6,7 @@ import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
 import Slider from '@react-native-community/slider';
 import { db, auth } from './firebaseConfig';
 import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
+import { Pagination } from 'react-native-snap-carousel';
 
 import neighborhoodsData from './neighborhoods.json';
 import chicagoNeighborhoodsData from './chicagoCoordinates.json';
@@ -156,44 +157,48 @@ const ScoresViewScreen = ({ navigation, route }) => {
         const parsedLocation = JSON.parse(storedLocation);
         console.log("Current location retrieved from AsyncStorage:");
         setLocation(parsedLocation)
+        const neighborhoodData = await AsyncStorage.getItem('neighborhoods');
+        if (neighborhoodData !== null) {
+          let parsedData = JSON.parse(neighborhoodData);
+
+          let currentLoc;
+          if (parsedLocation != null) {
+            currentLoc = findNeighborhood(parsedLocation["longitude"], parsedLocation["latitude"])
+            if (currentLoc == null) {
+              const additionalEntry = {
+                [currentLoc]: { count: null, ratio: null }
+              };
+              parsedData = { ...additionalEntry, ...parsedData };
+            } else {
+              const [count, ratio] = countDocumentsByNeighborhood(currentLoc);
+
+              const additionalEntry = {
+                [currentLoc]: { count: count, ratio: ratio }
+              };
+
+              parsedData = { ...additionalEntry, ...parsedData };
+            }
+          }
+
+          setNeighborhoods(parsedData);
+          setNumOfScreens(Object.keys(parsedData).length);
+          setCurrentIndex(index + 1);
+
+          const entriesArray = Object.entries(parsedData);
+          const resultsArray = await Promise.all(entriesArray.map(async ([key]) => {
+            return await checkHasRated(key);
+          }));
+          setHasRated(resultsArray);
+
+
+        }
       } else {
         console.log("No current location found in AsyncStorage.");
       }
     } catch (error) {
       console.error('Error loading data:', error);
     }
-    const neighborhoodData = await AsyncStorage.getItem('neighborhoods');
-    if (neighborhoodData !== null) {
-      const parsedData = JSON.parse(neighborhoodData);
 
-
-      // const currentLoc = findNeighborhood(location["longitude"], location["latitude"])
-      // if (currentLoc == null) {
-      //   const additionalEntry = {
-      //     [currentLoc]: { count: null, ratio: null}
-      //   };
-      //   parsedData = { ...additionalEntry, ...parsedData };
-      // } else {
-      //   const [count, ratio] = countDocumentsByNeighborhood(currentLoc);
-
-      //   const additionalEntry = {
-      //     [currentLoc]: { count: count, ratio: ratio}
-      //   };
-
-      //   // Merge the new object with the existing parsedData
-      //   parsedData = { ...additionalEntry, ...parsedData };
-      // }
-      setNeighborhoods(parsedData);
-      setNumOfScreens(Object.keys(parsedData).length);
-      setCurrentIndex(index);
-
-      const entriesArray = Object.entries(parsedData);
-      const resultsArray = await Promise.all(entriesArray.map(async ([key]) => {
-        return await checkHasRated(key);
-      }));
-      setHasRated(resultsArray);
-
-    }
 
   };
 
@@ -227,87 +232,66 @@ const ScoresViewScreen = ({ navigation, route }) => {
     const ratio = data.ratio;
 
     return () => (
-      <SafeAreaView style={[styles.screen, { backgroundColor: getBackgroundColor(count)?.backgroundColor }]}>
-        <Text style={[styles.centeredText, styles.titleStyle]}>{neighborhood}</Text>
-        <View style={[styles.borderBox, { backgroundColor: getBackgroundColor(count)?.backgroundColor }]}>
-          <Text style={[styles.centeredText, styles.scoreStyle]}>{count !== null ? count : 'Loading...'}</Text>
-        </View>
-        <View style={styles.scoreComparisonContainer}>
-          {ratio !== null && ratio !== undefined ? (
-            <>
-              <Text style={styles.scoreComparisonText}>{ratio > 0 ? ratio.toFixed(2) + "% more safe \n compared to the \n national average" : -ratio.toFixed(2) + "% more dangerous \n compared to the \n national average"}</Text>
-            </>
-          ) : null}
-        </View>
-        <>
-          {hasRated[currentIndex] ? (
-            <View style={styles.avgRatingContainer}>
-              <Text style={styles.avgUserRatingText}>{"Average\nUser Rating:"}</Text>
-              <Text style={styles.avgUserRatingText}>{120 - avgRating}</Text>
+      <>
+        {count != null ? (
+          <SafeAreaView style={[styles.screen, { backgroundColor: getBackgroundColor(count)?.backgroundColor }]}>
+            <Text style={[styles.centeredText, styles.titleStyle]}>{neighborhood}</Text>
+            <View style={[styles.borderBox, { backgroundColor: getBackgroundColor(count)?.backgroundColor }]}>
+              <Text style={[styles.centeredText, styles.scoreStyle]}>{count !== null ? count : 'Loading...'}</Text>
             </View>
-          ) : (
+            <View style={styles.scoreComparisonContainer}>
+              {ratio !== null && ratio !== undefined ? (
+                <>
+                  <Text style={styles.scoreComparisonText}>{ratio > 0 ? ratio.toFixed(2) + "% more safe \n compared to the \n national average" : -ratio.toFixed(2) + "% more dangerous \n compared to the \n national average"}</Text>
+                </>
+              ) : null}
+            </View>
+            <>
+              {hasRated[currentIndex] ? (
+                <View style={styles.avgRatingContainer}>
+                  <Text style={styles.avgUserRatingText}>{"Average\nUser Rating:"}</Text>
+                  <Text style={styles.avgUserRatingText}>{120 - avgRating}</Text>
+                </View>
+              ) : (
 
-            <View style={styles.ratingContainer}>
-              <Image style={styles.ratingImage} source={getRatingImage(rating)} />
+                <View style={styles.ratingContainer}>
+                  <Image style={styles.ratingImage} source={getRatingImage(rating)} />
 
-              <Slider
-                style={{ width: 200, height: 40 }}
-                minimumValue={1}
-                maximumValue={5}
-                step={1}
-                value={rating}
-                onValueChange={setRating}
-                thumbTintColor='white'
-                minimumTrackTintColor="white"
-              />
-              {
-                rating > 0 && (
-                  <TouchableOpacity
-                    style={styles.submitButton}
-                    onPress={sendRatingToFirestore}
-                  >
-                    <Text style={styles.submitButtonText}>Submit Rating</Text>
-                  </TouchableOpacity>
-                )
-              }
-            </View>)}
-        </>
+                  <Slider
+                    style={{ width: 200, height: 40 }}
+                    minimumValue={1}
+                    maximumValue={5}
+                    step={1}
+                    value={rating}
+                    onValueChange={setRating}
+                    thumbTintColor='white'
+                    minimumTrackTintColor="white"
+                  />
+                  {
+                    rating > 0 && (
+                      <TouchableOpacity
+                        style={styles.submitButton}
+                        onPress={sendRatingToFirestore}
+                      >
+                        <Text style={styles.submitButtonText}>Submit Rating</Text>
+                      </TouchableOpacity>
+                    )
+                  }
+                </View>)}
+            </>
 
+            <Text style={styles.statusText}> Danger Level: {getBackgroundColor(count)?.status}</Text>
+          </SafeAreaView>
+        ) :
+          (
+            <SafeAreaView style={styles.container}>
+              <Text style={styles.currentLocationText}>Your current location is not within a supported neighborhood.</Text>
+            </SafeAreaView>
+          )
+        }
+      </>
 
-
-
-
-        <Text style={styles.statusText}> Danger Level: {getBackgroundColor(count)?.status}</Text>
-      </SafeAreaView>
     );
-  };
-
-  // Add your current location screen here
-  const generateCurrentLocationScreen = () => {
-
-    if (!location) {
-      // Location data not available yet, return null or a loading indicator
-      return () => {
-        <SafeAreaView style={styles.container}>
-          <ActivityIndicator size="large" color="#0d3b66" />
-        </SafeAreaView>
-      };
-    }
-
-    return () => (
-      <SafeAreaView style={styles.container}>
-        <Text>Latitude: {location.latitude}</Text>
-        <Text>Longitude: {location.longitude}</Text>
-      </SafeAreaView>
-    );
-
-
-  };
-
-
-  const currentLocationScreen = {
-    key: "currentLocation",
-    component: generateCurrentLocationScreen()
   };
 
 
@@ -343,6 +327,8 @@ const ScoresViewScreen = ({ navigation, route }) => {
     </View>
   );
 
+
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#0d3b66" }}>
       <FlatList
@@ -370,7 +356,6 @@ const ScoresViewScreen = ({ navigation, route }) => {
             let mappingNum;
             let feature;
 
-            console.log(currentNeighborhood);
             if (neighborhoodMappingSTL.hasOwnProperty(currentNeighborhood)) {
               mappingNum = neighborhoodMappingSTL[currentNeighborhood];
               feature = neighborhoodsData.features.find(f => f.properties.NHD_NUM === mappingNum);
@@ -387,8 +372,8 @@ const ScoresViewScreen = ({ navigation, route }) => {
               navigation.navigate('MapScreen', { long: -90.236402, lat: 38.627003 });
             } else {
               const outerBoundary = (feature.geometry.type === "MultiPolygon")
-              ? feature.geometry.coordinates[0][0] 
-              : feature.geometry.coordinates[0];              
+                ? feature.geometry.coordinates[0][0]
+                : feature.geometry.coordinates[0];
               const centroid = calculateCentroid(outerBoundary);
               navigation.navigate('MapScreen', { long: centroid[0], lat: centroid[1] });
             };
@@ -397,6 +382,20 @@ const ScoresViewScreen = ({ navigation, route }) => {
         >
           <FontAwesomeIcon name="map" size={24} color="white" />
         </TouchableOpacity>
+        <View style={styles.paginationHolder}>
+          <Pagination
+            dotsLength={numOfScreens}
+            activeDotIndex={currentIndex}
+            containerStyle={styles.paginationContainer}
+            dotStyle={styles.paginationDot}
+            inactiveDotStyle={styles.paginationInactiveDot}
+            inactiveDotOpacity={0.4}
+            inactiveDotScale={0.6}
+            dotContainerStyle={styles.paginationDotContainer}
+            dotColor={'white'}
+            inactiveDotColor={'grey'}
+          />
+        </View>
 
         <TouchableOpacity
           style={styles.bottomBarButton}
@@ -555,5 +554,40 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: '10%',
     textAlign: 'center',
+  },
+  currentLocationText: {
+    color: 'white',
+    fontSize: 26,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    width: '75%'
+  },
+  paginationHolder: {
+    position: 'absolute',
+    bottom: 14,
+    left: 0,
+    right: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  paginationContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  paginationDotContainer: {
+    marginHorizontal: 5,
+  },
+  paginationDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  paginationInactiveDot: {
+    backgroundColor: 'grey',
+  },
+  customDotImage: {
+    width: 20,
+    height: 20,
+
   }
 });
