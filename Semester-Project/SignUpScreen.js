@@ -11,6 +11,22 @@ const SignUpScreen = ({ navigation }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [errorText, setErrorText] = useState("");
 
+  const getPermissions = async () => {
+    let { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== 'granted') {
+      console.log("Please grant location permissions");
+      return;
+    }
+
+    let currentLocation = await Location.getCurrentPositionAsync({});
+
+    await AsyncStorage.setItem('currentLocation', JSON.stringify({
+      latitude: currentLocation.coords.latitude,
+      longitude: currentLocation.coords.longitude
+    }));
+    console.log("Current location stored in AsyncStorage.");
+  };
+
   const signUp = async () => {
     try {
       // Create user with email and password
@@ -27,6 +43,8 @@ const SignUpScreen = ({ navigation }) => {
         userVerified = auth.currentUser.emailVerified;
         if (!userVerified) {
           await new Promise(resolve => setTimeout(resolve, 3000)); 
+          getPermissions();
+          console.log("got loc");
         }
       }
     } catch (error) {
