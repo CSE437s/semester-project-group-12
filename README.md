@@ -3,7 +3,7 @@
 ## Team Name: SafeCities
 ## Group #: 12
 ## Contributors: Andy Cho, Trevor Perez, Junxian Zhang
-## TA: <Insert Here>
+## TA: Mason
 
 ## Instructions/Link to access: 
 ## 1. Download Expo Go from the app store
