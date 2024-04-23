@@ -7,6 +7,9 @@ import { useIsFocused } from '@react-navigation/native';
 import { deleteNeighborhood } from './PersonalData';
 import { auth } from './firebaseConfig';
 
+import * as Location from 'expo-location';
+
+
 const SearchScreen = ({ navigation }) => {
   const [search, setSearch] = useState('');
   const [suggestions, setSuggestions] = useState([]);
@@ -27,10 +30,27 @@ const SearchScreen = ({ navigation }) => {
 }, []);
 
   useEffect(() => {
+    const getPermissions = async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        console.log("Please grant location permissions");
+        return;
+      }
+
+      let currentLocation = await Location.getCurrentPositionAsync({});
+      console.log("permissions");
+
+      await AsyncStorage.setItem('currentLocation', JSON.stringify({
+        latitude: currentLocation.coords.latitude,
+        longitude: currentLocation.coords.longitude
+      }));
+      console.log("Current location stored in AsyncStorage.");
+    };
     if (isFocused) {
-      console.log("focused");
       setTimeout(() => {
+        console.log("loading");
         loadData();
+        getPermissions();
       }, 1000); 
     }
   }, [isFocused]);
@@ -56,7 +76,6 @@ const SearchScreen = ({ navigation }) => {
   };
 
   const loadData = async () => {
-    console.log('loading');
     try {
         const data = await AsyncStorage.getItem('neighborhoods');
         console.log("data:");
