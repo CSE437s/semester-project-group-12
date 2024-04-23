@@ -7,6 +7,7 @@ import { useIsFocused } from '@react-navigation/native';
 import { deleteNeighborhood } from './PersonalData';
 import { auth } from './firebaseConfig';
 import { neighborhoodMapping as neighborhoodMappingChicago } from './chicagoData';
+import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
 
 import * as Location from 'expo-location';
 
@@ -17,6 +18,7 @@ const SearchScreen = ({ navigation }) => {
   const [neighborhoods, setNeighborhoods] = useState({});
   const [userid, setUserid] = useState(null);
   const [newAdd, setNewAdd] = useState(null);
+  const [showMinusButton, setShowMinusButton] = useState(false);
 
   const suggestionData = require('./STLNeighborhoods.json').neighborhoods;
   const isFocused = useIsFocused();
@@ -56,7 +58,7 @@ const SearchScreen = ({ navigation }) => {
   }, [isFocused]);
 
   useEffect(() => {
-    let index = Object.entries(neighborhoods).length+1
+    let index = Object.entries(neighborhoods).length + 1
     if (index != 0) {
       navigation.navigate('ScoresViewScreen', { name: newAdd, index })
     }
@@ -117,6 +119,10 @@ const SearchScreen = ({ navigation }) => {
     );
   };
 
+  const toggleMinusButton = () => {
+    setShowMinusButton(!showMinusButton);
+  };
+
   const onPressedSuggestion = (item) => {
     navigation.navigate('ScoreScreen', {
       name: item,
@@ -140,11 +146,11 @@ const SearchScreen = ({ navigation }) => {
   );
 
   const renderNeighborhoodTab = ({ item, index }) => {
-    if (index === 0) { 
+    if (index === 0) {
       return (
         <TouchableOpacity
-          onPress={() => onPressedTab(item, index)} 
-          style={[styles.neighborhoodTab, { backgroundColor: "grey"}]}
+          onPress={() => onPressedTab(item, index)}
+          style={[styles.neighborhoodTab, { backgroundColor: "grey" }]}
         >
           <View style={styles.currentLocationTab}>
             <Text style={styles.tabText}>Current Location</Text>
@@ -153,17 +159,44 @@ const SearchScreen = ({ navigation }) => {
       );
     } else {
       return (
-        <TouchableOpacity
-          onPress={() => onPressedTab(item, index)}
-          onLongPress={() => deleteNeigh(item.neighborhood)} 
-          style={[styles.neighborhoodTab, { backgroundColor: getBackgroundColor(item.count) }]}
-        >
-          <View style={styles.tabContent}>
-            <Text style={styles.tabText}>{item.neighborhood}</Text>
-            <Text style={styles.tabCity}>{Object.keys(neighborhoodMappingChicago).includes(item.neighborhood) ? 'Chicago' : 'St. Louis'}</Text>
-            <Text style={styles.tabCount}>{item.count}</Text>
-          </View>
-        </TouchableOpacity>
+        <View>
+          {showMinusButton ? (
+            <View style={styles.fullTab}>
+              {showMinusButton ? (
+                <TouchableOpacity
+                  onPress={() => deleteNeigh(item.neighborhood)}
+                  style={styles.deleteButton}
+                >
+                  <FontAwesomeIcon name="trash" size={20} color="white" />
+
+                  {/* <Text style={styles.minusButton}>-</Text> */}
+                </TouchableOpacity>
+              ) : null}
+              <TouchableOpacity
+                onPress={() => onPressedTab(item, index)}
+                style={[styles.neighborhoodTabEdit, { backgroundColor: getBackgroundColor(item.count) }]}
+              >
+                <View style={styles.tabContent}>
+                  <Text style={styles.tabText}>{item.neighborhood}</Text>
+                  <Text style={styles.tabCity}>{Object.keys(neighborhoodMappingChicago).includes(item.neighborhood) ? 'Chicago' : 'St. Louis'}</Text>
+                  <Text style={styles.tabCount}>{item.count}</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity
+              onPress={() => onPressedTab(item, index)}
+              style={[styles.neighborhoodTab, { backgroundColor: getBackgroundColor(item.count) }]}
+            >
+              <View style={styles.tabContent}>
+                <Text style={styles.tabText}>{item.neighborhood}</Text>
+                <Text style={styles.tabCity}>{Object.keys(neighborhoodMappingChicago).includes(item.neighborhood) ? 'Chicago' : 'St. Louis'}</Text>
+                <Text style={styles.tabCount}>{item.count}</Text>
+              </View>
+            </TouchableOpacity>
+          )}
+        </View>
+
       );
     }
   };
@@ -184,19 +217,24 @@ const SearchScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <SearchBar
-        placeholder="Search for a neighborhood"
-        clearIcon
-        onChangeText={updateSearch}
-        containerStyle={styles.searchContainer}
-        inputContainerStyle={styles.searchInputContainer}
-        inputStyle={styles.searchInput}
-        value={search}
-      />
+      <View style={styles.searchBarContainer}>
+        <SearchBar
+          placeholder="Search for a neighborhood"
+          clearIcon
+          onChangeText={updateSearch}
+          containerStyle={styles.searchContainer}
+          inputContainerStyle={styles.searchInputContainer}
+          inputStyle={styles.searchInput}
+          value={search}
+        />
+        <TouchableOpacity onPress={toggleMinusButton} style={styles.toggleButton}>
+          <FontAwesomeIcon name="edit" size={24} color="grey" />
+        </TouchableOpacity>
+      </View>
       {suggestions.length === 0 && search === '' && (
         <FlatList
           data={[
-            { currentLocation: true }, 
+            { currentLocation: true },
             ...Object.entries(neighborhoods).map(([neighborhood, { count }]) => ({ neighborhood, count }))
           ]}
           renderItem={renderNeighborhoodTab}
@@ -224,12 +262,20 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     backgroundColor: 'transparent',
+    borderWidth: 0, 
     borderBottomColor: 'transparent',
     borderTopColor: 'transparent',
+    flex: 1, 
   },
   searchInputContainer: {
     backgroundColor: '#edede9',
     borderRadius: 10,
+    height: 40, 
+  },
+  searchBarContainer: {
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'space-between', 
   },
   searchInput: {
     color: '#003049',
@@ -239,9 +285,17 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#003049',
   },
+  toggleButton: {
+    padding: 10,
+  },
   itemTitle: {
     color: '#003049',
     fontSize: 18
+  },
+  fullTab: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   neighborhoodTabs: {
     flex: 1,
@@ -256,6 +310,31 @@ const styles = StyleSheet.create({
     width: '95%',
     borderRadius: 20,
   },
+  neighborhoodTabEdit: {
+    padding: 25,
+    flexDirection: 'row',
+    marginBottom: 5,
+    marginLeft: 0,
+    width: '83%',
+    borderRadius: 20,
+  },
+  deleteButton: {
+    padding: 10,
+    width: 40,
+    height: 40,
+    marginBottom: 5,
+    marginRight: 10,
+    borderRadius: 25,
+    backgroundColor: 'red',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  minusButton: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 15,
+    textAlign: 'center',
+  },
   tabContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -266,7 +345,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 25,
     marginBottom: 10
-   
+
   },
   tabCity: {
     color: '#fff',

@@ -19,7 +19,6 @@ const ScoreScreen = ({ navigation, route }) => {
         const unsubscribe = auth.onAuthStateChanged(user => {
             if (user) {
                 setUserid(user.uid);
-                console.log('User ID:', user.uid);
             } else {
                 setUserid(null);
                 console.log('User is signed out');
@@ -33,8 +32,7 @@ const ScoreScreen = ({ navigation, route }) => {
 
         countDocumentsByNeighborhood(neighborhood, city)
             .then(([fetchedCount, fetchedRatio]) => {
-                console.log(`The crime index is ${fetchedCount} for ${neighborhood} neighborhood.`);
-                setCount(fetchedCount); // Update the count state with the fetched value
+                setCount(fetchedCount);
                 setRatio(fetchedRatio);
             })
             .catch(error => {
