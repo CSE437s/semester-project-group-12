@@ -1,12 +1,12 @@
 import { React, useState, useRef, useEffect } from 'react';
-import { StyleSheet, View, Text, Dimensions, SafeAreaView, TouchableOpacity, FlatList, ActivityIndicator, Share, Image } from 'react-native';
+import { StyleSheet, View, Text, Dimensions, SafeAreaView, TouchableOpacity, FlatList, ActivityIndicator, Share, Image, Animated } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
 import Slider from '@react-native-community/slider';
 import { db, auth } from './firebaseConfig';
 import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
-import { Pagination } from 'react-native-snap-carousel';
+import { ExpandingDot, ScalingDot, LiquidLike, SlidingBorder } from "react-native-animated-pagination-dots";
 
 import neighborhoodsData from './neighborhoods.json';
 import chicagoNeighborhoodsData from './chicagoCoordinates.json';
@@ -15,7 +15,6 @@ import { neighborhoodMapping as neighborhoodMappingSTL } from './stldata';
 import { neighborhoodMapping as neighborhoodMappingChicago } from './chicagoData';
 import { findNeighborhood } from './getUserNeighborhood';
 import { countDocumentsByNeighborhood } from './GetScore'
-import * as Location from 'expo-location';
 
 const ratingImages = {
   5: require('./assets/Rating Emojis/Happy.png'),
@@ -36,9 +35,9 @@ const ScoresViewScreen = ({ navigation, route }) => {
   const [rating, setRating] = useState(3);
   const [hasRated, setHasRated] = useState([]);
   const [avgRating, setAvgRating] = useState(3);
+  const [scrollX, setScrollX] = useState(new Animated.Value(0));
 
   const { index } = route.params;
-
 
   useEffect(() => {
     if (isFocused) {
@@ -307,6 +306,7 @@ const ScoresViewScreen = ({ navigation, route }) => {
 
   const handleScroll = (event) => {
     const offsetX = event.nativeEvent.contentOffset.x;
+    setScrollX(new Animated.Value(offsetX));
     const index = Math.round(offsetX / Dimensions.get('window').width);
     setCurrentIndex(index);
 
@@ -326,8 +326,6 @@ const ScoresViewScreen = ({ navigation, route }) => {
       {item.component()}
     </View>
   );
-
-
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#0d3b66" }}>
@@ -383,18 +381,25 @@ const ScoresViewScreen = ({ navigation, route }) => {
           <FontAwesomeIcon name="map" size={24} color="white" />
         </TouchableOpacity>
         <View style={styles.paginationHolder}>
-          <Pagination
-            dotsLength={numOfScreens}
-            activeDotIndex={currentIndex}
-            containerStyle={styles.paginationContainer}
-            dotStyle={styles.paginationDot}
-            inactiveDotStyle={styles.paginationInactiveDot}
-            inactiveDotOpacity={0.4}
-            inactiveDotScale={0.6}
-            dotContainerStyle={styles.paginationDotContainer}
-            dotColor={'white'}
-            inactiveDotColor={'grey'}
+
+          <ExpandingDot
+            data={screens}
+            expandingDotWidth={20}
+            scrollX={scrollX}
+            inActiveDotOpacity={0.4}
+            dotStyle={{
+              width: 10,
+              height: 10,
+              backgroundColor: '#fffff',              
+              borderRadius: 5,
+              marginHorizontal: 5
+            }}
+            containerStyle={{
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
           />
+          
         </View>
 
         <TouchableOpacity
@@ -564,30 +569,11 @@ const styles = StyleSheet.create({
   },
   paginationHolder: {
     position: 'absolute',
-    bottom: 14,
+    bottom: 25,
     left: 0,
     right: 0,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  paginationContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  paginationDotContainer: {
-    marginHorizontal: 5,
-  },
-  paginationDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
-  paginationInactiveDot: {
-    backgroundColor: 'grey',
-  },
-  customDotImage: {
-    width: 20,
-    height: 20,
-
   }
+  
 });
