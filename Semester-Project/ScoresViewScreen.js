@@ -14,7 +14,7 @@ import chicagoNeighborhoodsData from './chicagoCoordinates.json';
 import { neighborhoodMapping as neighborhoodMappingSTL } from './stldata';
 import { neighborhoodMapping as neighborhoodMappingChicago } from './chicagoData';
 import { findNeighborhood } from './getUserNeighborhood';
-import { countDocumentsByNeighborhood } from './GetScore'
+import countDocumentsByNeighborhood from './GetScore';
 
 const ratingImages = {
   5: require('./assets/Rating Emojis/Happy.png'),
@@ -161,24 +161,33 @@ const ScoresViewScreen = ({ navigation, route }) => {
           let parsedData = JSON.parse(neighborhoodData);
 
           let currentLoc;
-          if (parsedLocation != null) {
+          if (parsedLocation !== null) {
             currentLoc = findNeighborhood(parsedLocation["longitude"], parsedLocation["latitude"])
-            if (currentLoc == null) {
-              const additionalEntry = {
+            // currentLoc = findNeighborhood(-90.184776, 38.624691);
+            console.log(currentLoc);
+            let additionalEntry;
+          
+            if (currentLoc === null) {
+              additionalEntry = {
                 [currentLoc]: { count: null, ratio: null }
               };
               parsedData = { ...additionalEntry, ...parsedData };
             } else {
-              const [count, ratio] = countDocumentsByNeighborhood(currentLoc);
-
-              const additionalEntry = {
-                [currentLoc]: { count: count, ratio: ratio }
-              };
-
-              parsedData = { ...additionalEntry, ...parsedData };
+              const city = Object.keys(neighborhoodMappingChicago).includes(currentLoc) ? 'Chicago' : 'STL';
+              await countDocumentsByNeighborhood(currentLoc, city)
+                .then(([fetchedCount, fetchedRatio]) => {
+                  console.log(fetchedCount + " " + fetchedRatio);
+                  additionalEntry = {
+                    [currentLoc]: { count: fetchedCount, ratio: fetchedRatio }
+                  };
+                  parsedData = { ...additionalEntry, ...parsedData };
+                })
+                .catch(error => {
+                  console.error("Failed to count documents: ", error);
+                });
             }
           }
-
+          
           setNeighborhoods(parsedData);
           setNumOfScreens(Object.keys(parsedData).length);
           setCurrentIndex(index + 1);
@@ -390,7 +399,7 @@ const ScoresViewScreen = ({ navigation, route }) => {
             dotStyle={{
               width: 10,
               height: 10,
-              backgroundColor: '#fffff',              
+              backgroundColor: '#fffff',
               borderRadius: 5,
               marginHorizontal: 5
             }}
@@ -399,7 +408,7 @@ const ScoresViewScreen = ({ navigation, route }) => {
               alignItems: 'center',
             }}
           />
-          
+
         </View>
 
         <TouchableOpacity
@@ -575,5 +584,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   }
-  
+
 });

@@ -38,7 +38,6 @@ const SearchScreen = ({ navigation }) => {
       }
 
       let currentLocation = await Location.getCurrentPositionAsync({});
-      console.log("permissions");
 
       await AsyncStorage.setItem('currentLocation', JSON.stringify({
         latitude: currentLocation.coords.latitude,
@@ -57,7 +56,6 @@ const SearchScreen = ({ navigation }) => {
 
   useEffect(() => {
     let index = Object.entries(neighborhoods).length
-    console.log("index");
     if (index != 0) {
       navigation.navigate('ScoresViewScreen', { name: newAdd, index})
     }
