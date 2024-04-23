@@ -190,7 +190,7 @@ const ScoresViewScreen = ({ navigation, route }) => {
           
           setNeighborhoods(parsedData);
           setNumOfScreens(Object.keys(parsedData).length);
-          setCurrentIndex(index + 1);
+          setCurrentIndex(index);
 
           const entriesArray = Object.entries(parsedData);
           const resultsArray = await Promise.all(entriesArray.map(async ([key]) => {

@@ -27,7 +27,7 @@ const SearchScreen = ({ navigation }) => {
     } else {
       setUserid(null);
     }
-}, []);
+  }, []);
 
   useEffect(() => {
     const getPermissions = async () => {
@@ -50,14 +50,14 @@ const SearchScreen = ({ navigation }) => {
         console.log("loading");
         loadData();
         getPermissions();
-      }, 1000); 
+      }, 1000);
     }
   }, [isFocused]);
 
   useEffect(() => {
     let index = Object.entries(neighborhoods).length
     if (index != 0) {
-      navigation.navigate('ScoresViewScreen', { name: newAdd, index})
+      navigation.navigate('ScoresViewScreen', { name: newAdd, index })
     }
 
   }, [newAdd]);
@@ -75,23 +75,20 @@ const SearchScreen = ({ navigation }) => {
 
   const loadData = async () => {
     try {
-        const data = await AsyncStorage.getItem('neighborhoods');
-        console.log("data:");
+      const data = await AsyncStorage.getItem('neighborhoods');
 
-        console.log(data);
-
-        if (data && data !== "null" && data !== "undefined") {
-            const parsedData = JSON.parse(data);
-            setNeighborhoods(parsedData);
-            console.log('Data loaded successfully:', parsedData);
-        }
+      if (data && data !== "null" && data !== "undefined") {
+        const parsedData = JSON.parse(data);
+        setNeighborhoods(parsedData);
+        console.log('Data loaded successfully:', parsedData);
+      }
     } catch (error) {
-        console.error('Error loading data:', error);
+      console.error('Error loading data:', error);
     }
-};
+  };
 
   const deleteNeigh = (neighborhoodName) => {
-    
+
     Alert.alert(
       'Confirm Deletion',
       `Are you sure you want to delete ${neighborhoodName}?`,
@@ -120,7 +117,8 @@ const SearchScreen = ({ navigation }) => {
   };
 
   const onPressedSuggestion = (item) => {
-    navigation.navigate('ScoreScreen', { name: item,
+    navigation.navigate('ScoreScreen', {
+      name: item,
       onGoBack: (data) => {
         setNewAdd(data);
       }
@@ -131,7 +129,7 @@ const SearchScreen = ({ navigation }) => {
   }
 
   const onPressedTab = (item, index) => {
-    navigation.navigate('ScoresViewScreen', { name: item.neighborhood, index})
+    navigation.navigate('ScoresViewScreen', { name: item.neighborhood, index })
   }
 
   const renderSuggestion = ({ item }) => (
@@ -140,18 +138,33 @@ const SearchScreen = ({ navigation }) => {
     </TouchableOpacity>
   );
 
-  const renderNeighborhoodTab = ({ item, index }) => (
-    <TouchableOpacity
-      onPress={() => onPressedTab(item, index)}
-      onLongPress={() => deleteNeigh(item.neighborhood)} // Long press to delete
-      style={[styles.neighborhoodTab, { backgroundColor: getBackgroundColor(item.count) }]}
-    >
-      <View style={styles.tabContent}>
-        <Text style={styles.tabText}>{item.neighborhood}</Text>
-        <Text style={styles.tabCount}>{item.count}</Text>
-      </View>
-    </TouchableOpacity>
-  );
+  const renderNeighborhoodTab = ({ item, index }) => {
+    if (index === 0) { 
+      return (
+        <TouchableOpacity
+          onPress={() => onPressedTab(item, index)} 
+          style={[styles.neighborhoodTab, { backgroundColor: "grey"}]}
+        >
+          <View style={styles.currentLocationTab}>
+            <Text style={styles.tabText}>Current Location</Text>
+          </View>
+        </TouchableOpacity>
+      );
+    } else {
+      return (
+        <TouchableOpacity
+          onPress={() => onPressedTab(item, index)}
+          onLongPress={() => deleteNeigh(item.neighborhood)} 
+          style={[styles.neighborhoodTab, { backgroundColor: getBackgroundColor(item.count) }]}
+        >
+          <View style={styles.tabContent}>
+            <Text style={styles.tabText}>{item.neighborhood}</Text>
+            <Text style={styles.tabCount}>{item.count}</Text>
+          </View>
+        </TouchableOpacity>
+      );
+    }
+  };
 
   const getBackgroundColor = (count) => {
     if (count !== null) {
@@ -180,9 +193,12 @@ const SearchScreen = ({ navigation }) => {
       />
       {suggestions.length === 0 && search === '' && (
         <FlatList
-          data={Object.entries(neighborhoods).map(([neighborhood, { count }]) => ({ neighborhood, count }))}
+          data={[
+            { specialItem: true }, 
+            ...Object.entries(neighborhoods).map(([neighborhood, { count }]) => ({ neighborhood, count }))
+          ]}
           renderItem={renderNeighborhoodTab}
-          keyExtractor={(item) => item.neighborhood}
+          keyExtractor={(item, index) => item.specialItem ? 'special' : item.neighborhood + index}
         />
       )}
       <FlatList
