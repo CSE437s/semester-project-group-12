@@ -164,7 +164,6 @@ const ScoresViewScreen = ({ navigation, route }) => {
           if (parsedLocation !== null) {
             currentLoc = findNeighborhood(parsedLocation["longitude"], parsedLocation["latitude"])
             // currentLoc = findNeighborhood(-90.184776, 38.624691);
-            console.log(currentLoc);
             let additionalEntry;
           
             if (currentLoc === null) {

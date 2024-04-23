@@ -51,16 +51,18 @@ const SearchScreen = ({ navigation }) => {
     if (isFocused) {
       setTimeout(() => {
         console.log("loading");
-        loadData();
         getPermissions();
+        loadData();
       }, 1000);
     }
   }, [isFocused]);
 
   useEffect(() => {
-    let index = Object.entries(neighborhoods).length + 1
-    if (index != 0) {
-      navigation.navigate('ScoresViewScreen', { name: newAdd, index })
+    if (newAdd != null) {
+      let index = Object.entries(neighborhoods).length + 1
+      if (index != 0) {
+        navigation.navigate('ScoresViewScreen', { name: newAdd, index })
+      }
     }
 
   }, [newAdd]);
@@ -262,20 +264,20 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     backgroundColor: 'transparent',
-    borderWidth: 0, 
+    borderWidth: 0,
     borderBottomColor: 'transparent',
     borderTopColor: 'transparent',
-    flex: 1, 
+    flex: 1,
   },
   searchInputContainer: {
     backgroundColor: '#edede9',
     borderRadius: 10,
-    height: 40, 
+    height: 40,
   },
   searchBarContainer: {
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    justifyContent: 'space-between', 
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   searchInput: {
     color: '#003049',
